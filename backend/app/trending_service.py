@@ -25,15 +25,32 @@ class TrendingService:
     
     def __init__(self):
         self.youtube_api_key = os.getenv("YOUTUBE_API_KEY")
-        self.redis_client = redis.Redis(
-            host=os.getenv("REDIS_HOST", "localhost"),
-            port=int(os.getenv("REDIS_PORT", 6379)),
-            db=0,
-            decode_responses=True
-        )
+        
+        # Redis connection with error handling
+        try:
+            self.redis_client = redis.Redis(
+                host=os.getenv("REDIS_HOST", "localhost"),
+                port=int(os.getenv("REDIS_PORT", 6379)),
+                db=0,
+                decode_responses=True,
+                socket_connect_timeout=2,
+                socket_timeout=2
+            )
+            # Test connection
+            self.redis_client.ping()
+            self.redis_available = True
+        except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
+            logger.warning(f"Redis not available, using in-memory cache: {str(e)}")
+            self.redis_client = None
+            self.redis_available = False
+            self._memory_cache = {}
         
         if self.youtube_api_key:
-            self.youtube = build('youtube', 'v3', developerKey=self.youtube_api_key)
+            try:
+                self.youtube = build('youtube', 'v3', developerKey=self.youtube_api_key)
+            except Exception as e:
+                logger.warning(f"YouTube API initialization failed: {str(e)}")
+                self.youtube = None
         else:
             logger.warning("YOUTUBE_API_KEY not set, trending features will be limited")
             self.youtube = None
@@ -50,22 +67,38 @@ class TrendingService:
         """
         # Check cache first
         cache_key = f"trending:{artist_name.lower()}"
-        cached = self.redis_client.get(cache_key)
+        cached = None
+        
+        if self.redis_available and self.redis_client:
+            try:
+                cached = self.redis_client.get(cache_key)
+            except Exception as e:
+                logger.warning(f"Redis get failed: {str(e)}")
+        elif not self.redis_available:
+            # Use in-memory cache
+            cached = self._memory_cache.get(cache_key)
         
         if cached:
-            data = json.loads(cached)
-            return TrendingData(**data)
+            try:
+                data = json.loads(cached) if isinstance(cached, str) else cached
+                return TrendingData(**data)
+            except Exception as e:
+                logger.warning(f"Failed to parse cached data: {str(e)}")
         
         # Fetch from YouTube API
         if self.youtube:
             try:
                 data = await self._fetch_youtube_trending(artist_name)
                 # Cache for 1 hour
-                self.redis_client.setex(
-                    cache_key,
-                    3600,
-                    json.dumps(data.dict())
-                )
+                cache_data = json.dumps(data.dict())
+                if self.redis_available and self.redis_client:
+                    try:
+                        self.redis_client.setex(cache_key, 3600, cache_data)
+                    except Exception as e:
+                        logger.warning(f"Redis setex failed: {str(e)}")
+                elif not self.redis_available:
+                    # Use in-memory cache (no expiration for simplicity)
+                    self._memory_cache[cache_key] = cache_data
                 return data
             except Exception as e:
                 logger.error(f"Error fetching YouTube data: {str(e)}")
@@ -91,11 +124,22 @@ class TrendingService:
             List of TrendingArtist sorted by velocity
         """
         cache_key = "trending:top"
-        cached = self.redis_client.get(cache_key)
+        cached = None
+        
+        if self.redis_available and self.redis_client:
+            try:
+                cached = self.redis_client.get(cache_key)
+            except Exception as e:
+                logger.warning(f"Redis get failed: {str(e)}")
+        elif not self.redis_available:
+            cached = self._memory_cache.get(cache_key)
         
         if cached:
-            data = json.loads(cached)
-            return [TrendingArtist(**item) for item in data]
+            try:
+                data = json.loads(cached) if isinstance(cached, str) else cached
+                return [TrendingArtist(**item) for item in data]
+            except Exception as e:
+                logger.warning(f"Failed to parse cached data: {str(e)}")
         
         # TODO: Fetch from YouTube API for multiple artists
         # For MVP, return mock data
@@ -106,11 +150,14 @@ class TrendingService:
         try:
             artists = await self._fetch_top_trending_artists(limit)
             # Cache for 6 hours
-            self.redis_client.setex(
-                cache_key,
-                21600,
-                json.dumps([a.dict() for a in artists])
-            )
+            cache_data = json.dumps([a.dict() for a in artists])
+            if self.redis_available and self.redis_client:
+                try:
+                    self.redis_client.setex(cache_key, 21600, cache_data)
+                except Exception as e:
+                    logger.warning(f"Redis setex failed: {str(e)}")
+            elif not self.redis_available:
+                self._memory_cache[cache_key] = cache_data
             return artists
         except Exception as e:
             logger.error(f"Error fetching top trending: {str(e)}")
