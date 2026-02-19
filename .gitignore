@@ -20,6 +20,14 @@ data/models/*.pth
 # Environment
 .env
 .env.local
+.env.*
+*.env
+
+# API Keys & Secrets (never commit these!)
+*_keys.md
+*_secrets.md
+*_credentials.md
+ACRCLOUD_PROJECT_KEYS.md
 
 # IDEs
 .vscode/
