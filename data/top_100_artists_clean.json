@@ -1,0 +1,75 @@
+{
+  "artists": [
+    {
+      "name": "Lil Baby",
+      "type_beat_count": 9,
+      "total_views": 13038453
+    },
+    {
+      "name": "Bro Is Making It Out The Suburbs \ud83d\udd25",
+      "type_beat_count": 4,
+      "total_views": 240426432
+    },
+    {
+      "name": "Jack Harlow X Lil Tecca X 2000s",
+      "type_beat_count": 4,
+      "total_views": 5666204
+    },
+    {
+      "name": "Travis Scott X Drake",
+      "type_beat_count": 3,
+      "total_views": 1899666
+    },
+    {
+      "name": "Travis Scott X Don Toliver",
+      "type_beat_count": 3,
+      "total_views": 1846125
+    },
+    {
+      "name": "Duki",
+      "type_beat_count": 2,
+      "total_views": 16878280
+    },
+    {
+      "name": "Pasta",
+      "type_beat_count": 1,
+      "total_views": 10896934
+    },
+    {
+      "name": "\"let It Flow\"",
+      "type_beat_count": 1,
+      "total_views": 4846691
+    },
+    {
+      "name": "Laegend Never Die 295",
+      "type_beat_count": 1,
+      "total_views": 3960178
+    },
+    {
+      "name": "Chess",
+      "type_beat_count": 1,
+      "total_views": 3834481
+    },
+    {
+      "name": "Blp Kosher",
+      "type_beat_count": 1,
+      "total_views": 3054213
+    },
+    {
+      "name": "21 Savage X Metro Boomin",
+      "type_beat_count": 1,
+      "total_views": 2251790
+    },
+    {
+      "name": "Happy X Macklemore",
+      "type_beat_count": 1,
+      "total_views": 1894492
+    },
+    {
+      "name": "Orchestra",
+      "type_beat_count": 1,
+      "total_views": 1559686
+    }
+  ],
+  "total": 14
+}

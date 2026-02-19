@@ -1,0 +1,23 @@
+{
+  "name": "type-beat",
+  "version": "1.0.0",
+  "description": "**A Shazam for type beats** that tells producers \"Your beat sounds like a [Artist] type beat\" + shows you who's trending so you can optimize for the market.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sskmusic7/type-beat-analyzer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sskmusic7/type-beat-analyzer/issues"
+  },
+  "homepage": "https://github.com/sskmusic7/type-beat-analyzer#readme",
+  "devDependencies": {
+    "playwright": "^1.58.0"
+  }
+}

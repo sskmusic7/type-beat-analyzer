@@ -168,9 +168,11 @@ class TrendingService:
         Fetch trending data from YouTube for a specific artist
         """
         search_query = f"{artist_name} type beat"
+        logger.info(f"Fetching trending data for: {artist_name}")
+        logger.info(f"Search query: {search_query}")
         
         try:
-            # Search for recent uploads
+            # Search for recent uploads (last 7 days)
             search_response = self.youtube.search().list(
                 q=search_query,
                 part='id,snippet',
@@ -181,6 +183,7 @@ class TrendingService:
             ).execute()
             
             if not search_response.get('items'):
+                logger.warning(f"No videos found for {artist_name}")
                 return TrendingData(
                     rank=None,
                     velocity=0.0,
@@ -195,37 +198,61 @@ class TrendingService:
                 id=','.join(video_ids)
             ).execute()
             
-            # Calculate velocity (views per day)
+            # Calculate velocity (views per day) - IMPROVED
             total_views = 0
             velocities = []
+            video_count = 0
             
             for video in videos_response.get('items', []):
                 stats = video['statistics']
                 views = int(stats.get('viewCount', 0))
                 total_views += views
+                video_count += 1
                 
-                # Calculate days since upload
+                # Calculate time since upload (handle same-day uploads)
                 published = datetime.fromisoformat(
                     video['snippet']['publishedAt'].replace('Z', '+00:00')
                 )
-                days_old = (datetime.now(published.tzinfo) - published).days
-                if days_old > 0:
-                    velocity = views / days_old
-                    velocities.append(velocity)
+                now = datetime.now(published.tzinfo)
+                time_diff = now - published
+                
+                # Use hours for more accurate calculation
+                hours_old = time_diff.total_seconds() / 3600
+                
+                # Minimum 1 hour to avoid division issues
+                if hours_old < 1:
+                    hours_old = 1
+                
+                # Calculate velocity: views per day
+                # For very recent videos, this gives a more accurate picture
+                velocity = views / (hours_old / 24)
+                velocities.append(velocity)
             
-            avg_velocity = sum(velocities) / len(velocities) if velocities else 0.0
+            # Use median velocity for more accurate trending (less affected by outliers)
+            if velocities:
+                velocities_sorted = sorted(velocities)
+                mid = len(velocities_sorted) // 2
+                if len(velocities_sorted) % 2 == 0:
+                    avg_velocity = (velocities_sorted[mid-1] + velocities_sorted[mid]) / 2
+                else:
+                    avg_velocity = velocities_sorted[mid]
+            else:
+                avg_velocity = 0.0
             
-            # Determine trend direction
-            if avg_velocity > 1000:
+            # Improved trend direction thresholds
+            # Based on typical type beat performance
+            if avg_velocity > 200:  # Lowered from 1000
                 direction = "up"
-            elif avg_velocity < 100:
+            elif avg_velocity < 20:  # Lowered from 100
                 direction = "down"
             else:
                 direction = "stable"
             
+            logger.info(f"{artist_name}: velocity={avg_velocity:.2f}, total_views={total_views}, direction={direction}, videos={video_count}")
+            
             return TrendingData(
                 rank=None,  # Will be set when comparing with other artists
-                velocity=avg_velocity,
+                velocity=round(avg_velocity, 2),  # Round to 2 decimals
                 total_views=total_views,
                 upload_date=None,
                 engagement_rate=None,
@@ -251,18 +278,20 @@ class TrendingService:
         for artist in artists_to_check[:limit]:
             try:
                 data = await self._fetch_youtube_trending(artist)
-                trending_list.append(TrendingArtist(
-                    artist=artist,
-                    rank=0,  # Will be sorted
-                    velocity=data.velocity,
-                    total_views=data.total_views,
-                    trend_direction=data.trend_direction
-                ))
+                # Only add if we got meaningful data
+                if data.total_views > 0 or data.velocity > 0:
+                    trending_list.append(TrendingArtist(
+                        artist=artist,
+                        rank=0,  # Will be sorted
+                        velocity=data.velocity,
+                        total_views=data.total_views,
+                        trend_direction=data.trend_direction
+                    ))
             except Exception as e:
                 logger.error(f"Error fetching data for {artist}: {str(e)}")
         
-        # Sort by velocity and assign ranks
-        trending_list.sort(key=lambda x: x.velocity, reverse=True)
+        # Sort by velocity (descending), then by total_views as tiebreaker
+        trending_list.sort(key=lambda x: (x.velocity, x.total_views), reverse=True)
         for i, artist in enumerate(trending_list, 1):
             artist.rank = i
         

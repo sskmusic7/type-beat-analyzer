@@ -56,60 +56,39 @@ class ModelInference:
         Returns:
             List of (artist_name, confidence_score) tuples, sorted by confidence
         """
-        # TODO: Replace with actual model inference
-        # For now, return placeholder predictions
+        # Use trained model if available
+        if self.model is not None:
+            try:
+                # Preprocess features for model
+                from app.audio_processor import AudioProcessor
+                processor = AudioProcessor()
+                mel_spec = processor.preprocess_for_model(features)
+                
+                # Convert to tensor
+                input_tensor = torch.from_numpy(mel_spec).float().to(self.device)
+                
+                # Run inference
+                with torch.no_grad():
+                    outputs = self.model(input_tensor)
+                    probabilities = torch.softmax(outputs, dim=1)
+                    probs = probabilities[0].cpu().numpy()
+                
+                # Get top predictions
+                top_indices = np.argsort(probs)[::-1][:5]  # Top 5
+                predictions = [
+                    (self.artist_list[idx], float(probs[idx]))
+                    for idx in top_indices
+                    if probs[idx] > 0.1  # Filter low confidence
+                ]
+                
+                return predictions
+            except Exception as e:
+                logger.error(f"Error during model inference: {str(e)}")
+                # Fall through to feature-based classifier
         
-        if self.model is None:
-            # Placeholder: return mock predictions
-            return self._placeholder_predictions()
-        
-        try:
-            # Preprocess features for model
-            from app.audio_processor import AudioProcessor
-            processor = AudioProcessor()
-            mel_spec = processor.preprocess_for_model(features)
-            
-            # Convert to tensor
-            input_tensor = torch.from_numpy(mel_spec).float().to(self.device)
-            
-            # Run inference
-            with torch.no_grad():
-                outputs = self.model(input_tensor)
-                probabilities = torch.softmax(outputs, dim=1)
-                probs = probabilities[0].cpu().numpy()
-            
-            # Get top predictions
-            top_indices = np.argsort(probs)[::-1][:5]  # Top 5
-            predictions = [
-                (self.artist_list[idx], float(probs[idx]))
-                for idx in top_indices
-                if probs[idx] > 0.1  # Filter low confidence
-            ]
-            
-            return predictions
-        
-        except Exception as e:
-            logger.error(f"Error during prediction: {str(e)}")
-            return self._placeholder_predictions()
+        # NO FALLBACKS - If no trained model, return empty
+        # Fingerprint matching should be used instead via /api/analyze
+        logger.warning("No trained model available. Use fingerprint matching instead.")
+        return []
     
-    def _placeholder_predictions(self) -> List[Tuple[str, float]]:
-        """
-        Placeholder predictions for MVP testing
-        Will be replaced with actual model
-        """
-        # Mock artist list (will be replaced with actual trained artists)
-        mock_artists = [
-            "Drake", "Travis Scott", "Metro Boomin", "Central Cee",
-            "21 Savage", "Future", "Lil Baby", "Playboi Carti",
-            "Kendrick Lamar", "J. Cole", "The Weeknd", "Post Malone"
-        ]
-        
-        # Generate random confidence scores (for testing)
-        np.random.seed(42)  # For reproducibility
-        scores = np.random.dirichlet(np.ones(len(mock_artists)))
-        top_indices = np.argsort(scores)[::-1][:5]
-        
-        return [
-            (mock_artists[idx], float(scores[idx]))
-            for idx in top_indices
-        ]
+    # REMOVED: _placeholder_predictions() - No fallbacks, only real analysis

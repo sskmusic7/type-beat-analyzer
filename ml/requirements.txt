@@ -11,3 +11,22 @@ tqdm==4.66.1
 
 # Data collection
 yt-dlp==2023.11.16
+
+# Streaming training
+spotipy==2.23.0
+requests==2.31.0
+python-dotenv==1.0.0
+faiss-cpu==1.7.4
+
+# Visualization
+streamlit==1.28.0
+plotly==5.18.0
+seaborn==0.13.0
+umap-learn==0.5.5
+pandas==2.1.4
+
+# Gemini API for code generation
+google-generativeai==0.3.2
+
+# YouTube API for trending discovery
+google-api-python-client==2.100.0

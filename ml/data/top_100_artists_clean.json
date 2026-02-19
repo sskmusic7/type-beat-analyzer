@@ -1,0 +1,653 @@
+{
+  "artists": [
+    {
+      "name": "Drake",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Travis Scott",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Baby",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Metro Boomin",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "21 Savage",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Future",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Uzi Vert",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Playboi Carti",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Kendrick Lamar",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "J. Cole",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Kanye West",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "The Weeknd",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Post Malone",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Juice WRLD",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Wayne",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Eminem",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Tyler The Creator",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "A$AP Rocky",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Roddy Ricch",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "DaBaby",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Gunna",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Durk",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Polo G",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Tjay",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Jack Harlow",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Don Toliver",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Yachty",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Young Thug",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Migos",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Offset",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Quavo",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Takeoff",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Kodak Black",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "NLE Choppa",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Pooh Shiesty",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "G Herbo",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Tecca",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lil Nas X",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Doja Cat",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Megan Thee Stallion",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Cardi B",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Nicki Minaj",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Ice Spice",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Latto",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "SZA",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Ariana Grande",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Billie Eilish",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Olivia Rodrigo",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Taylor Swift",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Bad Bunny",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "J Balvin",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Maluma",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Anuel AA",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Ozuna",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Karol G",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Shakira",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Rauw Alejandro",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Myke Towers",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Feid",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Peso Pluma",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Eslabon Armado",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Fuerza Regida",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Yeat",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Ken Carson",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Destroy Lonely",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "SoFaygo",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "SSGKobe",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lancey Foux",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Summrs",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Autumn!",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lucki",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Babyface Ray",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Rio Da Yung OG",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "RMC Mike",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "BabyTron",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Sada Baby",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "42 Dugg",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "EST Gee",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Moneybagg Yo",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Key Glock",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Young Dolph",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Big30",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Big Scarr",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Foogiano",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Enchanting",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "GloRilla",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Latto",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "GloRilla",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Coi Leray",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Flo Milli",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Saucy Santana",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Sukihana",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Sexyy Red",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Rubi Rose",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "BIA",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lakeyah",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Kali",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "KenTheMan",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "GloRilla",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Lola Brooke",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Flo Milli",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Coi Leray",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Baby Tate",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Rico Nasty",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Doechii",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Saucy Santana",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Sukihana",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    },
+    {
+      "name": "Sexyy Red",
+      "type_beat_count": 0,
+      "total_views": 0,
+      "priority": 1
+    }
+  ],
+  "total": 108
+}
