@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone'
 import { Upload, Loader2 } from 'lucide-react'
 import axios from 'axios'
 import { AnalysisResult } from '@/types'
+import { getApiBaseUrl } from '@/lib/api'
 
 interface AudioUploaderProps {
   onAnalysisComplete: (result: AnalysisResult) => void
@@ -32,7 +33,7 @@ export default function AudioUploader({
         formData.append('file', file)
 
         const response = await axios.post<AnalysisResult>(
-          'http://localhost:8000/api/analyze',
+          `${getApiBaseUrl()}/api/analyze`,
           formData,
           {
             headers: {

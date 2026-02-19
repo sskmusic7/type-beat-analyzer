@@ -30,10 +30,10 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# CORS middleware
+# CORS middleware - allow local + remote access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Next.js dev
+    allow_origins=["*"],  # Allow all for remote demo (restrict in production)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

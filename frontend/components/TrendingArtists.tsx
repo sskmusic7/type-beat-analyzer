@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { TrendingArtist } from '@/types'
 import axios from 'axios'
 import { TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react'
+import { getApiBaseUrl } from '@/lib/api'
 
 interface TrendingArtistsProps {
   artists: TrendingArtist[]
@@ -17,7 +18,7 @@ export default function TrendingArtists({ artists, setArtists }: TrendingArtists
     const fetchTrending = async () => {
       try {
         const response = await axios.get<TrendingArtist[]>(
-          'http://localhost:8000/api/trending?limit=10'
+          `${getApiBaseUrl()}/api/trending?limit=10`
         )
         setArtists(response.data)
       } catch (error) {

@@ -72,6 +72,46 @@ Then open: **http://localhost:3000**
 
 ---
 
+## 📱 REMOTE ACCESS (Conference/Network Demo)
+
+Access from phones, tablets, or other computers on the same network!
+
+### Option 2 Remote: Streamlit Dashboard
+
+```bash
+cd "/Users/sskmusic/Type beat"
+./scripts/start_streamlit_remote.sh
+```
+
+- **This machine**: http://localhost:8501
+- **Other devices**: http://YOUR_IP:8501 (IP shown when script starts)
+
+### Option 3 Remote: Full Web App
+
+```bash
+cd "/Users/sskmusic/Type beat"
+./scripts/start_webapp_remote.sh
+```
+
+Starts both backend + frontend. Access from:
+- **This machine**: http://localhost:3000
+- **Other devices**: http://YOUR_IP:3000 (IP shown when script starts)
+
+### Find Your IP Address
+
+```bash
+# Mac/Linux
+hostname -I | awk '{print $1}'
+# or
+ipconfig getifaddr en0   # Mac WiFi
+```
+
+### Firewall Note
+
+If remote devices can't connect, allow ports 3000, 8000, 8501 in your firewall.
+
+---
+
 ## 📋 Trained Artists List
 
 You have **697 fingerprints** from **74 artists**:
