@@ -21,11 +21,26 @@ curl https://type-beat-backend-x2x4tp5wra-uc.a.run.app/
 
 ## 📱 Frontend - Netlify
 
-**Status**: ⚠️ READY TO DEPLOY (requires interactive login)
+**Status**: ✅ DEPLOYED & LIVE
 
-**To complete deployment**:
+**URL**: https://sparkly-crumble-09f512.netlify.app
 
-### Option 1: Netlify (Recommended)
+**Admin**: https://app.netlify.com/projects/sparkly-crumble-09f512
+
+---
+
+## 🎉 Both Services Are LIVE!
+
+| Service | Status | URL |
+|---------|--------|-----|
+| **Backend API** | ✅ LIVE | https://type-beat-backend-x2x4tp5wra-uc.a.run.app |
+| **Frontend UI** | ✅ LIVE | https://sparkly-crumble-09f512.netlify.app |
+
+---
+
+## 📝 Deployment Details
+
+### Backend (Google Cloud Run)
 
 1. Go to: https://app.netlify.com
 2. Click "Add new site" → "Import an existing project"
@@ -65,35 +80,26 @@ cd backend
 gcloud builds submit --config cloudbuild.yaml
 ```
 
-### Frontend (Manual - requires Netlify login)
-```bash
-cd frontend
-netlify login
-netlify init
-netlify deploy --prod --dir=.next
-```
-
----
-
-## 📋 Current Status
-
-| Service | Status | URL |
-|---------|--------|-----|
-| **Backend API** | ✅ LIVE | https://type-beat-backend-x2x4tp5wra-uc.a.run.app |
-| **Frontend UI** | ⚠️ Ready | Deploy via Netlify/Vercel/GitHub Pages |
-| **Streamlit Dashboard** | 📦 Local Only | Run `./scripts/start_streamlit_remote.sh` |
+### Frontend (Netlify)
+- **Site ID**: `bc2c431d-ba66-4b46-a1fa-15d65e99c831`
+- **Environment**: `NEXT_PUBLIC_API_URL` set to backend URL
+- **Deploy command**: `netlify deploy --prod --dir=.next`
 
 ---
 
 ## 🎯 Access Your App
 
-**Backend API is LIVE and accessible from anywhere!**
+**Both services are LIVE and accessible from anywhere!**
 
-Test endpoints:
-- Health: https://type-beat-backend-x2x4tp5wra-uc.a.run.app/
-- API Docs: https://type-beat-backend-x2x4tp5wra-uc.a.run.app/docs
+### Frontend (Main App)
+- **Production**: https://sparkly-crumble-09f512.netlify.app
+- Upload beats, see trending artists, get matches!
 
-**Frontend**: Complete Netlify deployment (5 minutes) or use Vercel (2 minutes).
+### Backend API
+- **Health**: https://type-beat-backend-x2x4tp5wra-uc.a.run.app/
+- **API Docs**: https://type-beat-backend-x2x4tp5wra-uc.a.run.app/docs
+- **Analyze**: https://type-beat-backend-x2x4tp5wra-uc.a.run.app/api/analyze
+- **Trending**: https://type-beat-backend-x2x4tp5wra-uc.a.run.app/api/trending
 
 ---
 
