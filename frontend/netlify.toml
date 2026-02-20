@@ -1,7 +1,6 @@
 [build]
   command = "npm run build"
   publish = ".next"
-  functions = ".netlify/functions"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -9,8 +8,3 @@
 [build.environment]
   NODE_VERSION = "18"
   NEXT_PUBLIC_API_URL = "https://type-beat-backend-x2x4tp5wra-uc.a.run.app"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
