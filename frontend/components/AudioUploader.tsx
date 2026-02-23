@@ -72,8 +72,8 @@ export default function AudioUploader({
           transition-all duration-200
           ${
             isDragActive
-              ? 'border-primary-500 bg-primary-500/10'
-              : 'border-gray-400 hover:border-primary-500 hover:bg-white/5'
+              ? 'border-purple-500 bg-purple-500/20 shadow-glow-purple'
+              : 'border-slate-600 hover:border-purple-500/50 hover:bg-slate-800/50'
           }
           ${loading ? 'opacity-50 cursor-not-allowed' : ''}
         `}
@@ -81,19 +81,19 @@ export default function AudioUploader({
         <input {...getInputProps()} />
         {loading ? (
           <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-12 h-12 text-primary-500 animate-spin" />
-            <p className="text-white">Analyzing your beat...</p>
+            <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
+            <p className="text-slate-200">Analyzing your beat...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <Upload className="w-12 h-12 text-gray-400" />
+            <Upload className={`w-12 h-12 ${isDragActive ? 'text-purple-400' : 'text-slate-400'}`} />
             <div>
-              <p className="text-white text-lg font-medium">
+              <p className="text-slate-50 text-lg font-medium">
                 {isDragActive
                   ? 'Drop your beat here'
                   : 'Drag & drop your beat here'}
               </p>
-              <p className="text-gray-400 text-sm mt-2">
+              <p className="text-slate-400 text-sm mt-2">
                 or click to browse (MP3, WAV, M4A, FLAC, OGG)
               </p>
             </div>
@@ -102,8 +102,8 @@ export default function AudioUploader({
       </div>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-500/20 border border-red-500 rounded-lg">
-          <p className="text-red-200 text-sm">{error}</p>
+        <div className="mt-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg backdrop-blur-sm">
+          <p className="text-red-300 text-sm">{error}</p>
         </div>
       )}
     </div>

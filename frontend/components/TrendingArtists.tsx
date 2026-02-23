@@ -37,25 +37,25 @@ export default function TrendingArtists({ artists, setArtists }: TrendingArtists
   const getTrendIcon = (direction: string) => {
     switch (direction) {
       case 'up':
-        return <TrendingUp className="w-4 h-4 text-green-400" />
+        return <TrendingUp className="w-4 h-4 text-cyan-400" />
       case 'down':
         return <TrendingDown className="w-4 h-4 text-red-400" />
       default:
-        return <Minus className="w-4 h-4 text-gray-400" />
+        return <Minus className="w-4 h-4 text-slate-400" />
     }
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
+        <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
       </div>
     )
   }
 
   if (artists.length === 0) {
     return (
-      <p className="text-gray-400 text-sm text-center py-4">
+      <p className="text-slate-400 text-sm text-center py-4">
         No trending data available
       </p>
     )
@@ -66,27 +66,27 @@ export default function TrendingArtists({ artists, setArtists }: TrendingArtists
       {artists.map((artist, index) => (
         <div
           key={index}
-          className="bg-white/5 rounded-lg p-4 border border-white/10 hover:border-primary-500/50 transition-all"
+          className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 hover:border-purple-500/50 transition-all backdrop-blur-sm"
         >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-primary-500 font-bold text-lg">
+              <span className="text-purple-400 font-bold text-lg">
                 #{artist.rank}
               </span>
-              <span className="text-white font-medium">{artist.artist}</span>
+              <span className="text-slate-50 font-medium">{artist.artist}</span>
             </div>
             {getTrendIcon(artist.trend_direction)}
           </div>
-          <div className="text-xs text-gray-400 space-y-1">
+          <div className="text-xs text-slate-400 space-y-1">
             <div>
               <span>Velocity: </span>
-              <span className="text-white">
+              <span className="text-slate-200">
                 {Math.round(artist.velocity)} views/day
               </span>
             </div>
             <div>
               <span>Total: </span>
-              <span className="text-white">
+              <span className="text-slate-200">
                 {artist.total_views.toLocaleString()} views
               </span>
             </div>

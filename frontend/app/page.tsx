@@ -21,7 +21,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-slate-950">
       {/* Hero Section with Upload */}
       <Hero
         onAnalysisComplete={handleAnalysisComplete}
