@@ -124,9 +124,40 @@ async def analyze_beat(
         
         db_matches = music_db.identify_audio(temp_path)
         
-        # Also search local fingerprint database
+        # Also search local fingerprint database for closest matches
+        # Use low threshold (0.1) to get top 5 closest even if not very similar
         processing_monitor.update_job(job_id, stage="Searching local database", progress=60)
-        local_matches = fingerprint_service.search_similar(temp_path, top_k=5, threshold=0.5)
+        local_matches = fingerprint_service.search_similar(temp_path, top_k=5, threshold=0.1)
+        
+        # Sort local matches by similarity (highest first) - these are the 5 closest
+        local_matches.sort(key=lambda x: x.get('similarity', 0), reverse=True)
+        
+        # Also save fingerprint of uploaded beat for future matching
+        processing_monitor.update_job(job_id, stage="Saving uploaded beat fingerprint", progress=70)
+        try:
+            # Extract artist from filename if possible, otherwise use "Unknown"
+            filename = file.filename or "unknown"
+            # Try to extract artist from filename (e.g., "Artist - Title.mp3")
+            artist_from_filename = "Unknown"
+            if " - " in filename:
+                artist_from_filename = filename.split(" - ")[0].strip()
+            elif "Prod" in filename or "prod" in filename:
+                # Try to extract producer name
+                parts = filename.replace(".mp3", "").split()
+                if "Prod" in parts or "prod" in parts:
+                    idx = parts.index("Prod") if "Prod" in parts else parts.index("prod")
+                    if idx > 0:
+                        artist_from_filename = " ".join(parts[:idx])
+            
+            fingerprint_service.add_fingerprint(
+                audio_path=temp_path,
+                artist=artist_from_filename,
+                title=filename,
+                uploader_id="user_upload"
+            )
+            logger.info(f"[Job {job_id}] Saved fingerprint for uploaded beat: {filename}")
+        except Exception as e:
+            logger.warning(f"[Job {job_id}] Could not save fingerprint for uploaded beat: {e}")
         
         # Combine results (prefer database matches, then local)
         all_matches = []
@@ -144,7 +175,7 @@ async def analyze_beat(
                     'source': match.get('source', 'database')
                 })
         
-        # Add local matches
+        # Add local matches (top 5 closest, sorted by similarity descending)
         for match in local_matches:
             artist = match.get('artist', 'Unknown')
             if artist not in seen_artists:
@@ -152,9 +183,15 @@ async def analyze_beat(
                 all_matches.append({
                     'artist': artist,
                     'title': match.get('title', ''),
-                    'similarity': match.get('similarity', 0.5),
+                    'similarity': match.get('similarity', 0.0),
                     'source': 'local'
                 })
+        
+        # Sort all matches by similarity (highest first) - ensures top 5 closest are first
+        all_matches.sort(key=lambda x: x.get('similarity', 0), reverse=True)
+        
+        # Take top 5 closest
+        all_matches = all_matches[:5]
         
         logger.info(f"[Job {job_id}] Found {len(all_matches)} total matches ({len(db_matches)} from databases, {len(local_matches)} local)")
         
