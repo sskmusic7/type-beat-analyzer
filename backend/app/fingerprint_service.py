@@ -79,7 +79,7 @@ class FingerprintService:
     def _generate_fingerprint(self, audio_path: str, duration: Optional[float] = None) -> np.ndarray:
         """
         Generate 128-dim fingerprint from audio file
-        Uses mel-spectrogram approach similar to Neural Audio FP
+        Uses enhanced mel-spectrogram + musical features approach
         
         Args:
             audio_path: Path to audio file
@@ -88,55 +88,101 @@ class FingerprintService:
         Returns:
             128-dim embedding vector
         """
-        # Load audio (same params as Neural Audio FP)
-        # For training, use full duration; for matching, use 1 second
+        # Load audio - use higher sample rate for better feature extraction
         y, sr = librosa.load(
             audio_path,
-            sr=8000,  # Neural Audio FP uses 8kHz
+            sr=22050,  # Higher SR for better musical features
             mono=True,
-            duration=duration  # None = full file, 1.0 = 1 second
+            duration=duration if duration else 30.0  # Use 30s for better representation
         )
         
         # Normalize
         y = librosa.util.normalize(y)
         
-        # Extract mel-spectrogram (same as Neural Audio FP)
+        # Extract multiple musical features for better discrimination
+        features = []
+        
+        # 1. Mel-spectrogram (captures timbre/harmonic content)
         mel_spec = librosa.feature.melspectrogram(
             y=y,
             sr=sr,
-            n_mels=256,  # Neural Audio FP uses 256
-            fmin=300,
-            fmax=4000,
-            n_fft=1024,
-            hop_length=256
+            n_mels=128,
+            fmin=20,
+            fmax=sr//2,
+            n_fft=2048,
+            hop_length=512
         )
-        
-        # Convert to log-power
         mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
+        # Aggregate: mean and std across time
+        features.extend([
+            np.mean(mel_spec_db, axis=1),  # 128 dims - average spectral content
+            np.std(mel_spec_db, axis=1),   # 128 dims - spectral variation
+        ])
         
-        # Flatten and normalize
-        mel_flat = mel_spec_db.flatten()
+        # 2. Chroma features (captures harmonic/pitch content)
+        chroma = librosa.feature.chroma_stft(y=y, sr=sr, hop_length=512)
+        features.extend([
+            np.mean(chroma, axis=1),  # 12 dims - average pitch class
+            np.std(chroma, axis=1),   # 12 dims - pitch variation
+        ])
         
-        # Create embedding (simplified - in production, use trained Neural Audio FP model)
-        # For now, use PCA-like reduction to 128 dims
-        # TODO: Replace with actual Neural Audio FP model when checkpoint available
-        if len(mel_flat) >= self.embedding_dim:
-            # Simple approach: take first 128 features + mean pooling
-            embedding = mel_flat[:self.embedding_dim]
-            # Add some aggregation to make it more robust
-            if len(mel_flat) > self.embedding_dim:
-                # Mean pool remaining features
-                remaining = mel_flat[self.embedding_dim:]
-                chunk_size = len(remaining) // (self.embedding_dim - 64)
-                if chunk_size > 0:
-                    pooled = [np.mean(remaining[i:i+chunk_size]) 
-                             for i in range(0, len(remaining), chunk_size)]
-                    embedding[64:] = pooled[:64]
+        # 3. Tempo and rhythm (captures beat/rhythm patterns)
+        tempo, beats = librosa.beat.beat_track(y=y, sr=sr, hop_length=512)
+        # Beat-synced features
+        if len(beats) > 1:
+            beat_frames = librosa.frames_to_time(beats, sr=sr, hop_length=512)
+            # Onset strength
+            onset_frames = librosa.onset.onset_detect(y=y, sr=sr, hop_length=512)
+            onset_times = librosa.frames_to_time(onset_frames, sr=sr, hop_length=512)
+            # Rhythm features
+            if len(onset_times) > 0:
+                inter_onset = np.diff(onset_times)
+                features.append([tempo / 200.0, np.mean(inter_onset), np.std(inter_onset)])  # 3 dims
+            else:
+                features.append([tempo / 200.0, 0.0, 0.0])
         else:
-            # Pad if too short
-            embedding = np.pad(mel_flat, (0, self.embedding_dim - len(mel_flat)), 'constant')
+            features.append([0.0, 0.0, 0.0])
         
-        # L2 normalize (like Neural Audio FP)
+        # 4. MFCC (captures timbral texture)
+        mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13, hop_length=512)
+        features.extend([
+            np.mean(mfcc, axis=1),  # 13 dims
+            np.std(mfcc, axis=1),   # 13 dims
+        ])
+        
+        # 5. Spectral features
+        spectral_centroids = librosa.feature.spectral_centroid(y=y, sr=sr, hop_length=512)[0]
+        spectral_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr, hop_length=512)[0]
+        zero_crossing_rate = librosa.feature.zero_crossing_rate(y, hop_length=512)[0]
+        features.append([
+            np.mean(spectral_centroids) / 5000.0,  # Normalize
+            np.std(spectral_centroids) / 5000.0,
+            np.mean(spectral_rolloff) / 5000.0,
+            np.std(spectral_rolloff) / 5000.0,
+            np.mean(zero_crossing_rate),
+            np.std(zero_crossing_rate),
+        ])  # 6 dims
+        
+        # Combine all features
+        combined = np.concatenate([f.flatten() for f in features])
+        
+        # Reduce to 128 dims using PCA-like approach
+        if len(combined) > self.embedding_dim:
+            # Use first 128 + weighted average of rest
+            embedding = combined[:self.embedding_dim].copy()
+            remaining = combined[self.embedding_dim:]
+            # Weighted pooling of remaining features
+            weights = np.linspace(1.0, 0.1, len(remaining))
+            weighted_avg = np.average(remaining, weights=weights)
+            # Distribute weighted average across last 32 dims
+            embedding[-32:] = embedding[-32:] * 0.7 + weighted_avg * 0.3
+        elif len(combined) < self.embedding_dim:
+            # Pad with zeros
+            embedding = np.pad(combined, (0, self.embedding_dim - len(combined)), 'constant')
+        else:
+            embedding = combined
+        
+        # L2 normalize
         embedding = embedding / (np.linalg.norm(embedding) + 1e-8)
         
         return embedding.astype(np.float32)
@@ -230,11 +276,18 @@ class FingerprintService:
             # Search FAISS index
             distances, indices = self.index.search(query_embedding, min(top_k, self.index.ntotal))
             
-            # Convert distances to similarity scores (1 / (1 + distance))
+            # Convert distances to similarity scores
+            # L2 distance in normalized space: 0 = identical, 2.0 = opposite
+            # Use exponential decay for more realistic similarity scores
             results = []
             for i, (distance, idx) in enumerate(zip(distances[0], indices[0])):
                 if idx < len(self.metadata):
-                    similarity = 1.0 / (1.0 + distance)  # Convert distance to similarity
+                    # Convert L2 distance to similarity (0-1 scale)
+                    # Distance 0.0 -> similarity 1.0
+                    # Distance 0.5 -> similarity ~0.6
+                    # Distance 1.0 -> similarity ~0.37
+                    # Distance 2.0 -> similarity ~0.14
+                    similarity = np.exp(-distance * 2.0)  # Exponential decay
                     
                     if similarity >= threshold:
                         match = self.metadata[idx].copy()

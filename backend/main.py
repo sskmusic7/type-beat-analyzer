@@ -125,9 +125,9 @@ async def analyze_beat(
         db_matches = music_db.identify_audio(temp_path)
         
         # Also search local fingerprint database for closest matches
-        # Use low threshold (0.1) to get top 5 closest even if not very similar
+        # Use threshold 0.3 (30% similarity) to get top 5 closest matches
         processing_monitor.update_job(job_id, stage="Searching local database", progress=60)
-        local_matches = fingerprint_service.search_similar(temp_path, top_k=5, threshold=0.1)
+        local_matches = fingerprint_service.search_similar(temp_path, top_k=5, threshold=0.3)
         
         # Sort local matches by similarity (highest first) - these are the 5 closest
         local_matches.sort(key=lambda x: x.get('similarity', 0), reverse=True)
