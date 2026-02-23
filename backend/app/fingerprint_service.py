@@ -286,8 +286,17 @@ class FingerprintService:
         
         # ========== COMBINE & REDUCE TO 128 DIMS ==========
         
-        # Flatten all features
-        combined = np.concatenate([f.flatten() for f in features])
+        # Flatten all features (handle both arrays and lists)
+        flattened_features = []
+        for f in features:
+            if isinstance(f, np.ndarray):
+                flattened_features.append(f.flatten())
+            elif isinstance(f, (list, tuple)):
+                flattened_features.append(np.array(f).flatten())
+            else:
+                flattened_features.append(np.array([f]).flatten())
+        
+        combined = np.concatenate(flattened_features)
         
         # Intelligent dimensionality reduction to 128 dims
         # Strategy: Keep most important features, intelligently pool others

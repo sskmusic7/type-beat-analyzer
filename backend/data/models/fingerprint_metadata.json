@@ -1,0 +1,50 @@
+[
+  {
+    "id": 0,
+    "artist": "Unknown",
+    "title": "test.mp3",
+    "audio_hash": "e71fd07187b171007443effa1974971886789d77817f4aa4797b4066a293e5ad",
+    "upload_date": null,
+    "uploader_id": "user_upload"
+  },
+  {
+    "id": 1,
+    "artist": "4 Loko",
+    "title": "4 Loko - Prod. by SSK.mp3",
+    "audio_hash": "2b2e16f436697ae30d5c39a0e07dee4e6cb475b1a8f5e084e2d14eff29117699",
+    "upload_date": null,
+    "uploader_id": "user_upload"
+  },
+  {
+    "id": 2,
+    "artist": "Expensive Habits",
+    "title": "Expensive Habits - Prod. by SSK.mp3",
+    "audio_hash": "002d409fbd852de644a9695f07f2d47bf54cbdce28039a8b6168e747a702115e",
+    "upload_date": null,
+    "uploader_id": "user_upload"
+  },
+  {
+    "id": 3,
+    "artist": "FEMA",
+    "title": "FEMA - Prod. by SSK.mp3",
+    "audio_hash": "d9aa65ea258b64a217113d191ba4dcdf8324f9d8d2da449e8e8c35729937e6bf",
+    "upload_date": null,
+    "uploader_id": "user_upload"
+  },
+  {
+    "id": 4,
+    "artist": "Unknown",
+    "title": "Kays' pain 2 (my whole life).mp3",
+    "audio_hash": "1b30ceaa4dc0cffc16f466e327ab75119783152482661fd02b3d4936e4f2e703",
+    "upload_date": null,
+    "uploader_id": "user_upload"
+  },
+  {
+    "id": 5,
+    "artist": "Money  Talks",
+    "title": "Money  Talks - Prod by SSK.mp3",
+    "audio_hash": "a7208fdb9a07841af92586ffc3d7f5b4847207195f451420d9145d5d2e0fc363",
+    "upload_date": null,
+    "uploader_id": "user_upload"
+  }
+]
