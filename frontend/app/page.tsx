@@ -4,12 +4,14 @@ import { useState } from 'react'
 import Hero from '@/components/Hero'
 import TrendingSection from '@/components/TrendingSection'
 import ResultsSection from '@/components/ResultsSection'
+import MissionControl from '@/components/MissionControl'
 import { AnalysisResult, TrendingArtist as TrendingArtistType } from '@/types'
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [trendingArtists, setTrendingArtists] = useState<TrendingArtistType[]>([])
   const [loading, setLoading] = useState(false)
+  const [showMissionControl, setShowMissionControl] = useState(true)
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
     setAnalysisResult(result)
@@ -28,6 +30,19 @@ export default function Home() {
         loading={loading}
         setLoading={setLoading}
       />
+
+      {/* Mission Control Dashboard */}
+      <section id="mission-control" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={() => setShowMissionControl(!showMissionControl)}
+            className="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors"
+          >
+            {showMissionControl ? 'Hide' : 'Show'} Mission Control
+          </button>
+        </div>
+        {showMissionControl && <MissionControl />}
+      </section>
 
       {/* Results Section */}
       {analysisResult && (

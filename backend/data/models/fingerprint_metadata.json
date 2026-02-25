@@ -1,50 +1,90 @@
 [
   {
     "id": 0,
-    "artist": "Unknown",
-    "title": "test.mp3",
-    "audio_hash": "e71fd07187b171007443effa1974971886789d77817f4aa4797b4066a293e5ad",
+    "artist": "SSK",
+    "title": "Expensive Habits",
+    "audio_hash": "002d409fbd852de644a9695f07f2d47bf54cbdce28039a8b6168e747a702115e",
     "upload_date": null,
-    "uploader_id": "user_upload"
+    "uploader_id": "comprehensive_regeneration"
   },
   {
     "id": 1,
-    "artist": "4 Loko",
-    "title": "4 Loko - Prod. by SSK.mp3",
-    "audio_hash": "2b2e16f436697ae30d5c39a0e07dee4e6cb475b1a8f5e084e2d14eff29117699",
+    "artist": "Unknown",
+    "title": "4",
+    "audio_hash": "1cfe3b96390c26103b02919e36bb26619a994336711984ab775b94afbe1c779e",
     "upload_date": null,
-    "uploader_id": "user_upload"
+    "uploader_id": "comprehensive_regeneration"
   },
   {
     "id": 2,
-    "artist": "Expensive Habits",
-    "title": "Expensive Habits - Prod. by SSK.mp3",
-    "audio_hash": "002d409fbd852de644a9695f07f2d47bf54cbdce28039a8b6168e747a702115e",
+    "artist": "Unknown",
+    "title": "3",
+    "audio_hash": "a9bc0e0bf67b5a1c542ce70573e8fcab686e7805e21f0059b1ca2b9c8dd9a32a",
     "upload_date": null,
-    "uploader_id": "user_upload"
+    "uploader_id": "comprehensive_regeneration"
   },
   {
     "id": 3,
-    "artist": "FEMA",
-    "title": "FEMA - Prod. by SSK.mp3",
-    "audio_hash": "d9aa65ea258b64a217113d191ba4dcdf8324f9d8d2da449e8e8c35729937e6bf",
+    "artist": "Unknown",
+    "title": "Kays' pain 2 (my whole life)",
+    "audio_hash": "1b30ceaa4dc0cffc16f466e327ab75119783152482661fd02b3d4936e4f2e703",
     "upload_date": null,
-    "uploader_id": "user_upload"
+    "uploader_id": "comprehensive_regeneration"
   },
   {
     "id": 4,
-    "artist": "Unknown",
-    "title": "Kays' pain 2 (my whole life).mp3",
-    "audio_hash": "1b30ceaa4dc0cffc16f466e327ab75119783152482661fd02b3d4936e4f2e703",
+    "artist": "SSK",
+    "title": "Money  Talks",
+    "audio_hash": "a7208fdb9a07841af92586ffc3d7f5b4847207195f451420d9145d5d2e0fc363",
     "upload_date": null,
-    "uploader_id": "user_upload"
+    "uploader_id": "comprehensive_regeneration"
   },
   {
     "id": 5,
-    "artist": "Money  Talks",
-    "title": "Money  Talks - Prod by SSK.mp3",
-    "audio_hash": "a7208fdb9a07841af92586ffc3d7f5b4847207195f451420d9145d5d2e0fc363",
+    "artist": "SSK",
+    "title": "FEMA",
+    "audio_hash": "d9aa65ea258b64a217113d191ba4dcdf8324f9d8d2da449e8e8c35729937e6bf",
     "upload_date": null,
-    "uploader_id": "user_upload"
+    "uploader_id": "comprehensive_regeneration"
+  },
+  {
+    "id": 6,
+    "artist": "SSK",
+    "title": "Trapic Rough",
+    "audio_hash": "e71fd07187b171007443effa1974971886789d77817f4aa4797b4066a293e5ad",
+    "upload_date": null,
+    "uploader_id": "comprehensive_regeneration"
+  },
+  {
+    "id": 7,
+    "artist": "Unknown",
+    "title": "1",
+    "audio_hash": "d63f27ada2ea54a563eb692a3f8a39d4ab9f1df2bf0e3f32b14c2843503c848a",
+    "upload_date": null,
+    "uploader_id": "comprehensive_regeneration"
+  },
+  {
+    "id": 8,
+    "artist": "Unknown",
+    "title": "2",
+    "audio_hash": "d0f1b95c52a66363ed4f8a3f5825c50efb3bee85a231231ede8bbc968217835f",
+    "upload_date": null,
+    "uploader_id": "comprehensive_regeneration"
+  },
+  {
+    "id": 9,
+    "artist": "SSK",
+    "title": "4 Loko",
+    "audio_hash": "2b2e16f436697ae30d5c39a0e07dee4e6cb475b1a8f5e084e2d14eff29117699",
+    "upload_date": null,
+    "uploader_id": "comprehensive_regeneration"
+  },
+  {
+    "id": 10,
+    "artist": "Unknown",
+    "title": "5",
+    "audio_hash": "30aab76d18941d17c531c5f2b137b86710ee6e4f563083c4a251e445bcd77307",
+    "upload_date": null,
+    "uploader_id": "comprehensive_regeneration"
   }
 ]

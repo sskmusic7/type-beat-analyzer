@@ -467,6 +467,65 @@ async def get_fingerprint_stats():
     return FingerprintStats(**stats)
 
 
+@app.get("/api/tasks")
+async def get_all_tasks(limit: int = 50):
+    """
+    Get all tasks/jobs for Mission Control dashboard
+    Returns tasks organized by status
+    """
+    try:
+        # Cleanup old jobs first
+        processing_monitor.cleanup_old_jobs(max_age_hours=24)
+        
+        # Get all jobs
+        all_jobs = processing_monitor.get_all_jobs(limit=limit)
+        
+        # Organize by status (Kanban columns)
+        tasks_by_status = {
+            "queued": [],
+            "processing": [],
+            "completed": [],
+            "failed": []
+        }
+        
+        for job in all_jobs:
+            status = job.get("status", "queued")
+            # Map statuses to Kanban columns
+            if status == "queued":
+                tasks_by_status["queued"].append(job)
+            elif status == "processing":
+                tasks_by_status["processing"].append(job)
+            elif status == "completed":
+                tasks_by_status["completed"].append(job)
+            elif status == "failed":
+                tasks_by_status["failed"].append(job)
+            else:
+                tasks_by_status["queued"].append(job)
+        
+        return {
+            "tasks": all_jobs,
+            "by_status": tasks_by_status,
+            "total": len(all_jobs)
+        }
+    except Exception as e:
+        logger.error(f"Error getting tasks: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching tasks: {str(e)}"
+        )
+
+
+@app.get("/api/tasks/{job_id}")
+async def get_task(job_id: str):
+    """
+    Get specific task by job ID
+    """
+    task = processing_monitor.get_job(job_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
+
 @app.post("/api/train/streaming")
 async def train_from_streaming(artists: List[str] = Form(...), max_tracks: int = Form(50)):
     """
