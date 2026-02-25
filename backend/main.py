@@ -467,6 +467,34 @@ async def get_fingerprint_stats():
     return FingerprintStats(**stats)
 
 
+@app.get("/api/fingerprint/list")
+async def list_all_fingerprints(limit: int = 1000, offset: int = 0):
+    """
+    Get list of all trained fingerprints
+    Returns all fingerprints with metadata for the training dashboard
+    """
+    try:
+        # Get all metadata (fingerprints)
+        all_fingerprints = fingerprint_service.metadata
+        
+        # Apply pagination
+        total = len(all_fingerprints)
+        paginated = all_fingerprints[offset:offset + limit]
+        
+        return {
+            "fingerprints": paginated,
+            "total": total,
+            "limit": limit,
+            "offset": offset
+        }
+    except Exception as e:
+        logger.error(f"Error listing fingerprints: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching fingerprints: {str(e)}"
+        )
+
+
 @app.get("/api/tasks")
 async def get_all_tasks(limit: int = 50):
     """
