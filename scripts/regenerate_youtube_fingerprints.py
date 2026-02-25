@@ -84,36 +84,54 @@ def regenerate_from_youtube(artists: list, max_per_artist: int = 10):
             # This will automatically delete audio files after fingerprinting
             count = trainer.train_artist_hybrid(artist, max_items=max_per_artist)
             
-            # Add fingerprints to database
+            # Get fingerprints that were just generated for this artist
+            # trainer.training_data accumulates, so get items for this artist
             artist_fingerprints = [
                 item for item in trainer.training_data 
                 if item.get('artist') == artist and item.get('source') == 'youtube_download'
             ]
             
-            for item in artist_fingerprints:
-                # The fingerprint is already generated with comprehensive method
-                # We need to add it to the FAISS index
-                fingerprint = item['fingerprint']
-                embedding = fingerprint if isinstance(fingerprint, list) else fingerprint.tolist()
-                embedding = np.array(embedding, dtype=np.float32).reshape(1, -1)
-                
-                fingerprint_service.index.add(embedding)
-                
-                fingerprint_id = fingerprint_service.id_counter
-                fingerprint_service.id_counter += 1
-                
-                metadata_entry = {
-                    'id': fingerprint_id,
-                    'artist': artist,
-                    'title': item.get('track_name', 'Unknown'),
-                    'audio_hash': f"youtube_{artist}_{item.get('track_name', 'unknown')}",
-                    'upload_date': None,
-                    'uploader_id': 'comprehensive_youtube_regeneration'
-                }
-                fingerprint_service.metadata.append(metadata_entry)
+            # Track how many we had before this artist
+            before_count = total_fingerprints
             
-            total_fingerprints += len(artist_fingerprints)
-            print(f"   ✅ Generated {len(artist_fingerprints)} comprehensive fingerprints for {artist}")
+            for item in artist_fingerprints:
+                try:
+                    # The fingerprint is already generated with comprehensive method
+                    fingerprint = item['fingerprint']
+                    if isinstance(fingerprint, list):
+                        embedding = np.array(fingerprint, dtype=np.float32)
+                    else:
+                        embedding = np.array(fingerprint, dtype=np.float32)
+                    
+                    # Ensure it's 128-dim
+                    if len(embedding) != 128:
+                        print(f"   ⚠️  Skipping fingerprint with wrong dimension: {len(embedding)}")
+                        continue
+                    
+                    embedding = embedding.reshape(1, -1)
+                    fingerprint_service.index.add(embedding)
+                    
+                    fingerprint_id = fingerprint_service.id_counter
+                    fingerprint_service.id_counter += 1
+                    
+                    metadata_entry = {
+                        'id': fingerprint_id,
+                        'artist': artist,
+                        'title': item.get('track_name', 'Unknown'),
+                        'audio_hash': f"youtube_{artist}_{fingerprint_id}",
+                        'upload_date': None,
+                        'uploader_id': 'comprehensive_youtube_regeneration'
+                    }
+                    fingerprint_service.metadata.append(metadata_entry)
+                    total_fingerprints += 1
+                except Exception as e:
+                    print(f"   ⚠️  Error adding fingerprint: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    continue
+            
+            added_this_artist = total_fingerprints - before_count
+            print(f"   ✅ Added {added_this_artist} comprehensive fingerprints for {artist} to database")
             
             # Save periodically
             if i % 5 == 0:
@@ -162,7 +180,13 @@ def main():
     print("REGENERATING FROM YOUTUBE (Comprehensive Method)")
     print("=" * 70)
     
-    max_per_artist = 10  # Start with 10 per artist (can increase later)
+    # Limit to first 5 artists for testing (remove limit for full run)
+    test_mode = os.getenv('TEST_MODE', 'false').lower() == 'true'
+    if test_mode:
+        artists = artists[:5]
+        print(f"🧪 TEST MODE: Processing only first 5 artists")
+    
+    max_per_artist = 5  # Start with 5 per artist (can increase later)
     success, count = regenerate_from_youtube(artists, max_per_artist)
     
     if success:
