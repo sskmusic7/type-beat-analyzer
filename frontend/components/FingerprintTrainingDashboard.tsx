@@ -71,11 +71,11 @@ export default function FingerprintTrainingDashboard() {
   useEffect(() => {
     fetchStats()
     fetchFingerprints()
-    // Auto-refresh every 5 seconds
+    // Auto-refresh every 2 seconds for real-time progress during regeneration
     const interval = setInterval(() => {
       fetchStats()
       fetchFingerprints()
-    }, 5000)
+    }, 2000)
     return () => clearInterval(interval)
   }, [])
 
@@ -132,10 +132,16 @@ export default function FingerprintTrainingDashboard() {
           <div className="flex items-center gap-3 mb-2">
             <Database className="w-5 h-5 text-purple-400" />
             <div className="text-sm text-slate-400">Total Fingerprints</div>
+            {loading && <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />}
           </div>
           <div className="text-3xl font-bold text-white">
             {stats?.total_fingerprints || 0}
           </div>
+          {stats && stats.total_fingerprints > 0 && (
+            <div className="text-xs text-slate-500 mt-1">
+              Target: ~370 (74 artists × 5 tracks)
+            </div>
+          )}
         </div>
 
         <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
