@@ -5,7 +5,6 @@ import Hero from '@/components/Hero'
 import TrendingSection from '@/components/TrendingSection'
 import ResultsSection from '@/components/ResultsSection'
 import MissionControl from '@/components/MissionControl'
-import FingerprintTrainingDashboard from '@/components/FingerprintTrainingDashboard'
 import { AnalysisResult, TrendingArtist as TrendingArtistType } from '@/types'
 
 export default function Home() {
@@ -13,7 +12,6 @@ export default function Home() {
   const [trendingArtists, setTrendingArtists] = useState<TrendingArtistType[]>([])
   const [loading, setLoading] = useState(false)
   const [showMissionControl, setShowMissionControl] = useState(true)
-  const [showTrainingDashboard, setShowTrainingDashboard] = useState(true)
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
     setAnalysisResult(result)
@@ -35,13 +33,7 @@ export default function Home() {
 
       {/* Mission Control Dashboard */}
       <section id="mission-control" className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="mb-4 flex justify-end gap-2">
-          <button
-            onClick={() => setShowTrainingDashboard(!showTrainingDashboard)}
-            className="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors"
-          >
-            {showTrainingDashboard ? 'Hide' : 'Show'} Training Dashboard
-          </button>
+        <div className="mb-4 flex justify-end">
           <button
             onClick={() => setShowMissionControl(!showMissionControl)}
             className="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors"
@@ -49,11 +41,6 @@ export default function Home() {
             {showMissionControl ? 'Hide' : 'Show'} Mission Control
           </button>
         </div>
-        {showTrainingDashboard && (
-          <div className="mb-8">
-            <FingerprintTrainingDashboard />
-          </div>
-        )}
         {showMissionControl && <MissionControl />}
       </section>
 

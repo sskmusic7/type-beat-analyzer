@@ -51,11 +51,18 @@ export default function FingerprintTrainingDashboard() {
   const fetchFingerprints = async () => {
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/fingerprint/list`)
-      if (!response.ok) throw new Error('Failed to fetch fingerprints')
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('API Error:', errorText)
+        throw new Error(`Failed to fetch fingerprints: ${response.status}`)
+      }
       const data = await response.json()
+      console.log('Fetched fingerprints:', data) // Debug log
       setFingerprints(data.fingerprints || [])
     } catch (error) {
       console.error('Error fetching fingerprints:', error)
+      // Set empty array on error so UI shows "no fingerprints" instead of loading forever
+      setFingerprints([])
     } finally {
       setLoading(false)
     }
