@@ -10,7 +10,10 @@ import {
   Loader2, 
   TrendingUp,
   Search,
-  Filter
+  Filter,
+  Play,
+  Square,
+  AlertCircle
 } from 'lucide-react'
 
 interface FingerprintStats {
@@ -28,6 +31,19 @@ interface Fingerprint {
   uploader_id: string | null
 }
 
+interface TrainingStatus {
+  status: 'idle' | 'running' | 'completed' | 'failed' | 'stopping'
+  progress: number
+  current_artist: string | null
+  artists_processed: number
+  total_artists: number
+  fingerprints_generated: number
+  started_at: string | null
+  completed_at: string | null
+  error: string | null
+  logs: string[]
+}
+
 export default function FingerprintTrainingDashboard() {
   const [stats, setStats] = useState<FingerprintStats | null>(null)
   const [fingerprints, setFingerprints] = useState<Fingerprint[]>([])
@@ -35,6 +51,9 @@ export default function FingerprintTrainingDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterArtist, setFilterArtist] = useState<string>('all')
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [trainingStatus, setTrainingStatus] = useState<TrainingStatus | null>(null)
+  const [isStartingTraining, setIsStartingTraining] = useState(false)
+  const [showTrainingPanel, setShowTrainingPanel] = useState(false)
 
   const fetchStats = async () => {
     try {
@@ -68,13 +87,82 @@ export default function FingerprintTrainingDashboard() {
     }
   }
 
+  const fetchTrainingStatus = async () => {
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/fingerprint/train/status`)
+      if (!response.ok) throw new Error('Failed to fetch training status')
+      const data = await response.json()
+      setTrainingStatus(data)
+      
+      // Auto-show panel if training is running
+      if (data.status === 'running' || data.status === 'stopping') {
+        setShowTrainingPanel(true)
+      }
+    } catch (error) {
+      console.error('Error fetching training status:', error)
+    }
+  }
+
+  const startTraining = async (clearExisting: boolean = true, maxPerArtist: number = 5) => {
+    setIsStartingTraining(true)
+    try {
+      const formData = new FormData()
+      formData.append('clear_existing', clearExisting.toString())
+      formData.append('max_per_artist', maxPerArtist.toString())
+      
+      const response = await fetch(`${getApiBaseUrl()}/api/fingerprint/train/start`, {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to start training')
+      }
+      
+      const data = await response.json()
+      setTrainingStatus(data.status)
+      setShowTrainingPanel(true)
+      
+      // Refresh stats immediately
+      await fetchStats()
+      await fetchTrainingStatus()
+    } catch (error: any) {
+      alert(`Error starting training: ${error.message}`)
+      console.error('Error starting training:', error)
+    } finally {
+      setIsStartingTraining(false)
+    }
+  }
+
+  const stopTraining = async () => {
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/fingerprint/train/stop`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to stop training')
+      }
+      
+      await fetchTrainingStatus()
+    } catch (error: any) {
+      alert(`Error stopping training: ${error.message}`)
+      console.error('Error stopping training:', error)
+    }
+  }
+
   useEffect(() => {
     fetchStats()
     fetchFingerprints()
-    // Auto-refresh every 2 seconds for real-time progress during regeneration
+    fetchTrainingStatus()
+    
+    // Auto-refresh every 2 seconds for real-time progress
     const interval = setInterval(() => {
       fetchStats()
       fetchFingerprints()
+      fetchTrainingStatus()
     }, 2000)
     return () => clearInterval(interval)
   }, [])
@@ -118,13 +206,165 @@ export default function FingerprintTrainingDashboard() {
             Real-time tracking of trained fingerprints and artists
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-slate-400">Last updated</div>
-          <div className="text-sm text-cyan-400 font-mono">
-            {lastUpdate.toLocaleTimeString()}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowTrainingPanel(!showTrainingPanel)}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              showTrainingPanel || trainingStatus?.status === 'running'
+                ? 'bg-purple-600 text-white hover:bg-purple-700'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+            }`}
+          >
+            {showTrainingPanel ? 'Hide' : 'Show'} Training Controls
+          </button>
+          <div className="text-right">
+            <div className="text-sm text-slate-400">Last updated</div>
+            <div className="text-sm text-cyan-400 font-mono">
+              {lastUpdate.toLocaleTimeString()}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Training Control Panel */}
+      {(showTrainingPanel || trainingStatus?.status === 'running') && (
+        <div className="mb-6 bg-gradient-to-br from-purple-900/20 to-cyan-900/20 rounded-xl p-6 border border-purple-500/30">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <Music className="w-5 h-5 text-purple-400" />
+              Training Control
+            </h3>
+            {trainingStatus?.status === 'running' && (
+              <div className="flex items-center gap-2 text-cyan-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm font-medium">Training in progress...</span>
+              </div>
+            )}
+          </div>
+
+          {/* Training Status */}
+          {trainingStatus && trainingStatus.status !== 'idle' && (
+            <div className="mb-4 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-400">Status:</span>
+                <span className={`font-semibold ${
+                  trainingStatus.status === 'running' ? 'text-cyan-400' :
+                  trainingStatus.status === 'completed' ? 'text-green-400' :
+                  trainingStatus.status === 'failed' ? 'text-red-400' :
+                  'text-yellow-400'
+                }`}>
+                  {trainingStatus.status.toUpperCase()}
+                </span>
+              </div>
+
+              {trainingStatus.status === 'running' && (
+                <>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-400">Progress:</span>
+                      <span className="text-white font-medium">
+                        {trainingStatus.artists_processed} / {trainingStatus.total_artists} artists
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-800 rounded-full h-2.5">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-cyan-500 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${trainingStatus.progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {trainingStatus.current_artist && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-400">Current Artist:</span>
+                      <span className="text-cyan-400 font-medium">{trainingStatus.current_artist}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-400">Fingerprints Generated:</span>
+                    <span className="text-green-400 font-medium">
+                      {trainingStatus.fingerprints_generated}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              {trainingStatus.status === 'completed' && (
+                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-green-400">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Training completed successfully!</span>
+                  </div>
+                  <div className="text-sm text-slate-400 mt-2">
+                    Generated {trainingStatus.fingerprints_generated} fingerprints from {trainingStatus.artists_processed} artists
+                  </div>
+                </div>
+              )}
+
+              {trainingStatus.status === 'failed' && trainingStatus.error && (
+                <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-red-400">
+                    <AlertCircle className="w-5 h-5" />
+                    <span className="font-medium">Training failed</span>
+                  </div>
+                  <div className="text-sm text-slate-400 mt-2">{trainingStatus.error}</div>
+                </div>
+              )}
+
+              {/* Training Logs */}
+              {trainingStatus.logs && trainingStatus.logs.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-sm text-slate-400 mb-2">Recent Logs:</div>
+                  <div className="bg-slate-900/50 rounded-lg p-3 max-h-32 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1 text-xs font-mono text-slate-300">
+                      {trainingStatus.logs.slice(-10).map((log, idx) => (
+                        <div key={idx}>{log}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Training Controls */}
+          <div className="flex items-center gap-3">
+            {trainingStatus?.status === 'running' || trainingStatus?.status === 'stopping' ? (
+              <button
+                onClick={stopTraining}
+                disabled={trainingStatus.status === 'stopping'}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Square className="w-4 h-4" />
+                Stop Training
+              </button>
+            ) : (
+              <button
+                onClick={() => startTraining(true, 5)}
+                disabled={isStartingTraining}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isStartingTraining ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    Start Training (Clear & Regenerate All)
+                  </>
+                )}
+              </button>
+            )}
+
+            <div className="text-xs text-slate-400 ml-auto">
+              Downloads from YouTube, generates comprehensive fingerprints, deletes audio immediately
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

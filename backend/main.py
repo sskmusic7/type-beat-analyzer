@@ -21,6 +21,7 @@ from app.schemas import AnalysisResult, TrendingArtist, FingerprintMatch, Finger
 from app.processing_monitor import ProcessingMonitor
 from app.fingerprint_service import FingerprintService
 from app.music_database_apis import MusicDatabaseAggregator
+from app.training_service import TrainingService
 
 load_dotenv()
 
@@ -57,6 +58,7 @@ trending_service = TrendingService()
 processing_monitor = ProcessingMonitor()
 fingerprint_service = FingerprintService()
 music_db = MusicDatabaseAggregator()  # Query existing music databases
+training_service = TrainingService()  # Background fingerprint training
 
 
 @app.get("/")
@@ -591,6 +593,94 @@ async def train_from_streaming(artists: List[str] = Form(...), max_tracks: int =
         raise HTTPException(
             status_code=500,
             detail=f"Error training from streaming: {str(e)}"
+        )
+
+
+@app.post("/api/fingerprint/train/start")
+async def start_training(
+    clear_existing: bool = Form(True),
+    max_per_artist: int = Form(5)
+):
+    """
+    Start fingerprint training in background
+    Downloads from YouTube, generates comprehensive fingerprints, deletes audio immediately
+    """
+    try:
+        if training_service.is_running():
+            raise HTTPException(
+                status_code=400,
+                detail="Training is already running. Stop it first or wait for completion."
+            )
+        
+        success = training_service.start_training(
+            clear_existing=clear_existing,
+            max_per_artist=max_per_artist
+        )
+        
+        if not success:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to start training"
+            )
+        
+        return {
+            "success": True,
+            "message": "Training started",
+            "status": training_service.get_status()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error starting training: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error starting training: {str(e)}"
+        )
+
+
+@app.post("/api/fingerprint/train/stop")
+async def stop_training():
+    """
+    Stop currently running training
+    """
+    try:
+        if not training_service.is_running():
+            raise HTTPException(
+                status_code=400,
+                detail="No training is currently running"
+            )
+        
+        training_service.stop_training()
+        
+        return {
+            "success": True,
+            "message": "Training stop requested",
+            "status": training_service.get_status()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error stopping training: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error stopping training: {str(e)}"
+        )
+
+
+@app.get("/api/fingerprint/train/status")
+async def get_training_status():
+    """
+    Get current training status and progress
+    """
+    try:
+        return training_service.get_status()
+    except Exception as e:
+        logger.error(f"Error getting training status: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error getting training status: {str(e)}"
         )
 
 
