@@ -36,3 +36,7 @@ data/raw/
 *.mp3
 *.wav
 *.m4a
+
+# BUT include the fingerprint database (small, needed for production)
+# data/models/fingerprint_index.faiss
+# data/models/fingerprint_metadata.json
