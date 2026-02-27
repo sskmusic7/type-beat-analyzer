@@ -128,11 +128,27 @@ class TrainingService:
             
             # Add paths for imports
             project_root = Path(__file__).parent.parent.parent
-            sys.path.insert(0, str(project_root / "ml"))
+            
+            # In Docker, ml/ is at /app/ml, in local dev it's ../ml
+            ml_path = Path("/app/ml") if Path("/app/ml").exists() else (project_root / "ml")
+            sys.path.insert(0, str(ml_path))
             sys.path.insert(0, str(project_root / "backend"))
             
             # Import here to avoid issues if not available
-            from hybrid_trainer import HybridTrainer
+            try:
+                from hybrid_trainer import HybridTrainer
+            except ImportError:
+                # Try alternative path
+                import importlib.util
+                hybrid_trainer_path = ml_path / "hybrid_trainer.py"
+                if hybrid_trainer_path.exists():
+                    spec = importlib.util.spec_from_file_location("hybrid_trainer", hybrid_trainer_path)
+                    hybrid_trainer = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(hybrid_trainer)
+                    HybridTrainer = hybrid_trainer.HybridTrainer
+                else:
+                    raise ImportError(f"Could not find hybrid_trainer.py at {hybrid_trainer_path}")
+            
             from app.fingerprint_service import FingerprintService
             
             # Step 1: Clear old index if requested

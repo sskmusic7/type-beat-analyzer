@@ -2,13 +2,16 @@
 # Deploy backend to Google Cloud Run
 
 set -e
-cd "$(dirname "$0")/../backend"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
 PROJECT_ID=$(gcloud config get-value project)
 echo "🚀 Deploying to project: $PROJECT_ID"
+echo "📁 Build context: $PROJECT_ROOT"
 
-# Build and deploy
-gcloud builds submit --config cloudbuild.yaml
+# Build and deploy (from project root so ml/ is accessible)
+gcloud builds submit --config backend/cloudbuild.yaml .
 
 # Get the service URL
 SERVICE_URL=$(gcloud run services describe type-beat-backend \

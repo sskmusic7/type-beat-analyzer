@@ -16,9 +16,11 @@
     "axios": "^1.6.2",
     "lucide-react": "^0.294.0",
     "next": "14.0.3",
+    "plotly.js": "^2.27.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "react-plotly.js": "^2.6.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

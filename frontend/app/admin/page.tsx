@@ -1,8 +1,9 @@
 'use client'
 
 import FingerprintTrainingDashboard from '@/components/FingerprintTrainingDashboard'
+import Fingerprint3DVisualization from '@/components/Fingerprint3DVisualization'
 import MissionControl from '@/components/MissionControl'
-import { Shield, Database, Activity } from 'lucide-react'
+import { Shield, Database, Activity, Box } from 'lucide-react'
 
 export default function AdminDashboard() {
   return (
@@ -28,6 +29,15 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-semibold text-white">Fingerprint Training</h2>
           </div>
           <FingerprintTrainingDashboard />
+        </section>
+
+        {/* 3D Visualization */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Box className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-xl font-semibold text-white">3D Fingerprint Visualization</h2>
+          </div>
+          <Fingerprint3DVisualization />
         </section>
 
         {/* Mission Control */}

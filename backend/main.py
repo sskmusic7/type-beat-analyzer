@@ -469,6 +469,75 @@ async def get_fingerprint_stats():
     return FingerprintStats(**stats)
 
 
+@app.get("/api/fingerprint/visualization")
+async def get_fingerprint_visualization():
+    """
+    Get fingerprint data for 3D visualization
+    Returns metadata with computed 3D coordinates based on artist clustering
+    """
+    try:
+        import numpy as np
+        from sklearn.manifold import TSNE
+        from sklearn.preprocessing import LabelEncoder
+        
+        all_fingerprints = fingerprint_service.metadata
+        
+        if len(all_fingerprints) < 3:
+            return {
+                "points": [],
+                "message": "Not enough fingerprints for visualization (need at least 3)"
+            }
+        
+        # Create artist-based features for dimensionality reduction
+        # Group by artist and create features
+        artists = [fp['artist'] for fp in all_fingerprints]
+        le = LabelEncoder()
+        artist_encoded = le.fit_transform(artists)
+        
+        # Create feature matrix: artist encoding + some metadata-based features
+        features = []
+        for fp in all_fingerprints:
+            artist_idx = artist_encoded[all_fingerprints.index(fp)]
+            # Simple features: artist, title length, etc.
+            title_len = len(fp.get('title', '')) / 100.0  # Normalize
+            features.append([artist_idx, title_len, hash(fp.get('artist', '')) % 100 / 100.0])
+        
+        features = np.array(features)
+        
+        # Use t-SNE to reduce to 3D
+        if len(features) > 50:
+            perplexity = min(30, len(features) - 1)
+        else:
+            perplexity = max(5, len(features) // 3)
+        
+        tsne = TSNE(n_components=3, perplexity=perplexity, random_state=42, n_iter=1000)
+        coords_3d = tsne.fit_transform(features)
+        
+        # Prepare response
+        points = []
+        for i, fp in enumerate(all_fingerprints):
+            points.append({
+                "id": fp['id'],
+                "artist": fp['artist'],
+                "title": fp.get('title', 'Unknown'),
+                "x": float(coords_3d[i][0]),
+                "y": float(coords_3d[i][1]),
+                "z": float(coords_3d[i][2]),
+            })
+        
+        return {
+            "points": points,
+            "total": len(points)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating visualization: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generating visualization: {str(e)}"
+        )
+
+
 @app.get("/api/fingerprint/list")
 async def list_all_fingerprints(limit: int = 1000, offset: int = 0):
     """
