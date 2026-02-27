@@ -130,24 +130,37 @@ class TrainingService:
             project_root = Path(__file__).parent.parent.parent
             
             # In Docker, ml/ is at /app/ml, in local dev it's ../ml
-            ml_path = Path("/app/ml") if Path("/app/ml").exists() else (project_root / "ml")
+            ml_path = Path("/app/ml")
+            if not ml_path.exists():
+                ml_path = project_root / "ml"
+            
+            # Log for debugging
+            self._log(f"Looking for hybrid_trainer in: {ml_path}")
+            self._log(f"ml_path exists: {ml_path.exists()}")
+            if ml_path.exists():
+                self._log(f"Contents of ml_path: {list(ml_path.glob('*.py'))[:5]}")
+            
             sys.path.insert(0, str(ml_path))
             sys.path.insert(0, str(project_root / "backend"))
             
             # Import here to avoid issues if not available
             try:
                 from hybrid_trainer import HybridTrainer
-            except ImportError:
-                # Try alternative path
+                self._log("✅ Successfully imported HybridTrainer")
+            except ImportError as e:
+                self._log(f"❌ Import error: {e}")
+                # Try alternative path using importlib
                 import importlib.util
                 hybrid_trainer_path = ml_path / "hybrid_trainer.py"
+                self._log(f"Trying to load from: {hybrid_trainer_path}")
                 if hybrid_trainer_path.exists():
                     spec = importlib.util.spec_from_file_location("hybrid_trainer", hybrid_trainer_path)
                     hybrid_trainer = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(hybrid_trainer)
                     HybridTrainer = hybrid_trainer.HybridTrainer
+                    self._log("✅ Loaded HybridTrainer via importlib")
                 else:
-                    raise ImportError(f"Could not find hybrid_trainer.py at {hybrid_trainer_path}")
+                    raise ImportError(f"Could not find hybrid_trainer.py at {hybrid_trainer_path}. ml_path={ml_path}, exists={ml_path.exists()}")
             
             from app.fingerprint_service import FingerprintService
             
