@@ -215,13 +215,17 @@ class TrainingService:
                 
                 try:
                     # Download from YouTube and generate fingerprints
+                    self._log(f"   📥 Calling train_artist_hybrid for {artist}...")
                     count = trainer.train_artist_hybrid(artist, max_items=max_per_artist)
+                    self._log(f"   📊 train_artist_hybrid returned: {count} fingerprints")
+                    self._log(f"   📋 trainer.training_data length: {len(trainer.training_data)}")
                     
                     # Get fingerprints for this artist
                     artist_fingerprints = [
                         item for item in trainer.training_data 
                         if item.get('artist') == artist and item.get('source') == 'youtube_download'
                     ]
+                    self._log(f"   🎯 Found {len(artist_fingerprints)} fingerprints for {artist} in training_data")
                     
                     before_count = total_fingerprints
                     
