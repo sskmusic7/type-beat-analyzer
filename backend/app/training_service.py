@@ -89,8 +89,22 @@ class TrainingService:
         except Exception as e:
             self._log(f"   ⚠️  Error clearing index: {e}")
     
-    def _run_training(self, clear_existing: bool = True, max_per_artist: int = 5):
-        """Run the training process in background thread"""
+    def _run_training(
+        self,
+        clear_existing: bool = True,
+        max_per_artist: int = 5,
+        artists: Optional[list] = None
+    ):
+        """Run the training process in background thread
+
+        clear_existing:
+            - True  -> wipe existing index first (full regeneration)
+            - False -> append new fingerprints to whatever is already there
+
+        artists:
+            - None or [] -> load artists from training data file
+            - list       -> train ONLY on the provided artists
+        """
         try:
             with self._lock:
                 self.is_training = True
@@ -126,14 +140,20 @@ class TrainingService:
                 self._clear_old_index()
             
             # Step 2: Get artists
-            artists = self._get_artists_from_training_data()
-            if not artists:
-                raise Exception("No artists found in training data")
+            if artists and len(artists) > 0:
+                # Use explicit list provided by caller (e.g. admin batch)
+                artists_list = sorted({a.strip() for a in artists if a and a.strip()})
+                self._log(f"📥 Received explicit artist batch from API: {len(artists_list)} artists")
+            else:
+                # Fallback to training data file (legacy full regeneration mode)
+                artists_list = self._get_artists_from_training_data()
+                if not artists_list:
+                    raise Exception("No artists found in training data")
             
             with self._lock:
-                self.training_status["total_artists"] = len(artists)
+                self.training_status["total_artists"] = len(artists_list)
             
-            self._log(f"\n🔄 Training fingerprints for {len(artists)} artists...")
+            self._log(f"\n🔄 Training fingerprints for {len(artists_list)} artists...")
             self._log(f"   Max tracks per artist: {max_per_artist}")
             self._log(f"   Audio files will be deleted immediately after fingerprinting\n")
             
@@ -151,7 +171,7 @@ class TrainingService:
             total_fingerprints = 0
             
             # Process each artist
-            for i, artist in enumerate(artists, 1):
+            for i, artist in enumerate(artists_list, 1):
                 if not self.is_training:  # Check if stopped
                     self._log("Training stopped by user")
                     break
@@ -159,7 +179,7 @@ class TrainingService:
                 with self._lock:
                     self.training_status["current_artist"] = artist
                     self.training_status["artists_processed"] = i - 1
-                    self.training_status["progress"] = int((i - 1) / len(artists) * 100)
+                    self.training_status["progress"] = int((i - 1) / len(artists_list) * 100)
                 
                 self._log(f"\n[{i}/{len(artists)}] Processing {artist}...")
                 self._log("=" * 60)
@@ -227,14 +247,14 @@ class TrainingService:
             with self._lock:
                 self.training_status["status"] = "completed"
                 self.training_status["progress"] = 100
-                self.training_status["artists_processed"] = len(artists)
+                self.training_status["artists_processed"] = len(artists_list)
                 self.training_status["fingerprints_generated"] = total_fingerprints
                 self.training_status["completed_at"] = datetime.now().isoformat()
                 self.training_status["current_artist"] = None
             
             self._log(f"\n✅ Training complete!")
             self._log(f"   Total fingerprints: {total_fingerprints}")
-            self._log(f"   Artists processed: {len(artists)}")
+            self._log(f"   Artists processed: {len(artists_list)}")
             
         except Exception as e:
             error_msg = str(e)
@@ -251,14 +271,24 @@ class TrainingService:
                 self.is_training = False
                 self.training_status["current_artist"] = None
     
-    def start_training(self, clear_existing: bool = True, max_per_artist: int = 5) -> bool:
-        """Start training in background thread"""
+    def start_training(
+        self,
+        clear_existing: bool = True,
+        max_per_artist: int = 5,
+        artists: Optional[list] = None
+    ) -> bool:
+        """Start training in background thread.
+
+        Used by API:
+          - clear_existing=True, artists=None  -> full regenerate (danger)
+          - clear_existing=False, artists=list -> append new artists (recommended)
+        """
         if self.is_training:
             return False
         
         self.training_thread = threading.Thread(
             target=self._run_training,
-            args=(clear_existing, max_per_artist),
+            args=(clear_existing, max_per_artist, artists),
             daemon=True
         )
         self.training_thread.start()

@@ -599,13 +599,20 @@ async def train_from_streaming(artists: List[str] = Form(...), max_tracks: int =
 @app.post("/api/fingerprint/train/start")
 async def start_training(
     clear_existing: bool = Form(True),
-    max_per_artist: int = Form(5)
+    max_per_artist: int = Form(5),
+    artists: Optional[str] = Form(None)
 ):
     """
     Start fingerprint training in background
     Downloads from YouTube, generates comprehensive fingerprints, deletes audio immediately
     """
     try:
+        # Parse optional artist batch from textarea / CSV
+        artist_list = None
+        if artists:
+            raw_items = [part.strip() for part in artists.replace("\n", ",").split(",")]
+            artist_list = sorted({item for item in raw_items if item})
+
         if training_service.is_running():
             raise HTTPException(
                 status_code=400,
@@ -614,7 +621,8 @@ async def start_training(
         
         success = training_service.start_training(
             clear_existing=clear_existing,
-            max_per_artist=max_per_artist
+            max_per_artist=max_per_artist,
+            artists=artist_list
         )
         
         if not success:

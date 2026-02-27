@@ -54,6 +54,7 @@ export default function FingerprintTrainingDashboard() {
   const [trainingStatus, setTrainingStatus] = useState<TrainingStatus | null>(null)
   const [isStartingTraining, setIsStartingTraining] = useState(false)
   const [showTrainingPanel, setShowTrainingPanel] = useState(false)
+  const [artistBatchInput, setArtistBatchInput] = useState('')
 
   const fetchStats = async () => {
     try {
@@ -103,12 +104,22 @@ export default function FingerprintTrainingDashboard() {
     }
   }
 
-  const startTraining = async (clearExisting: boolean = true, maxPerArtist: number = 5) => {
+  const startTraining = async (
+    clearExisting: boolean = true,
+    maxPerArtist: number = 5,
+    artistText?: string
+  ) => {
     setIsStartingTraining(true)
     try {
       const formData = new FormData()
       formData.append('clear_existing', clearExisting.toString())
       formData.append('max_per_artist', maxPerArtist.toString())
+
+      const text = (artistText ?? artistBatchInput).trim()
+      if (text.length > 0) {
+        // Backend will split on commas/newlines
+        formData.append('artists', text)
+      }
       
       const response = await fetch(`${getApiBaseUrl()}/api/fingerprint/train/start`, {
         method: 'POST',
@@ -328,8 +339,41 @@ export default function FingerprintTrainingDashboard() {
             </div>
           )}
 
+          {/* Artist Batch Input */}
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-[2fr,3fr] gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Artist batch (one per line or comma-separated)
+              </label>
+              <textarea
+                value={artistBatchInput}
+                onChange={(e) => setArtistBatchInput(e.target.value)}
+                rows={4}
+                placeholder="e.g.\nTaylor Swift\nBurna Boy\nRAYE\nMahalia\nAriana Grande"
+                className="w-full px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none"
+              />
+              <p className="mt-2 text-xs text-slate-400">
+                This will <span className="text-green-400 font-semibold">add fingerprints</span> for these artists on top of your existing database.
+                It does <span className="text-red-400 font-semibold">not delete</span> existing fingerprints.
+              </p>
+            </div>
+            <div className="text-xs text-slate-400 space-y-2">
+              <p className="font-semibold text-slate-200">How it works:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>For each artist, downloads top songs & related type beats from YouTube.</li>
+                <li>Generates comprehensive 128‑dim fingerprints (300+ features).</li>
+                <li>Deletes audio immediately after fingerprinting (legal compliance).</li>
+                <li>Appends new fingerprints to your existing FAISS index.</li>
+              </ul>
+              <p className="pt-1">
+                Leave the box empty to use the legacy full‑dataset training list
+                (only recommended with the full regenerate option below).
+              </p>
+            </div>
+          </div>
+
           {/* Training Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
             {trainingStatus?.status === 'running' || trainingStatus?.status === 'stopping' ? (
               <button
                 onClick={stopTraining}
@@ -340,26 +384,43 @@ export default function FingerprintTrainingDashboard() {
                 Stop Training
               </button>
             ) : (
-              <button
-                onClick={() => startTraining(true, 5)}
-                disabled={isStartingTraining}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isStartingTraining ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Starting...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4" />
-                    Start Training (Clear & Regenerate All)
-                  </>
-                )}
-              </button>
+              <>
+                <button
+                  onClick={() => startTraining(false, 5)}
+                  disabled={isStartingTraining}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isStartingTraining ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Starting...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4" />
+                      Start Training (Add Artists Only)
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    const confirmed = window.confirm(
+                      'This will CLEAR all existing fingerprints and fully regenerate the database using the main training list. Are you sure?'
+                    )
+                    if (confirmed) {
+                      startTraining(true, 5, '')
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-red-500/60 text-red-300 rounded-lg text-xs md:text-sm hover:bg-red-950/40 transition-colors"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  Full Regenerate (Danger)
+                </button>
+              </>
             )}
 
-            <div className="text-xs text-slate-400 ml-auto">
+            <div className="text-xs text-slate-400 md:ml-auto">
               Downloads from YouTube, generates comprehensive fingerprints, deletes audio immediately
             </div>
           </div>
