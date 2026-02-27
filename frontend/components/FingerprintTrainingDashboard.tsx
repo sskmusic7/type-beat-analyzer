@@ -15,6 +15,7 @@ import {
   Square,
   AlertCircle
 } from 'lucide-react'
+import type { TrendingArtist } from '@/types'
 
 interface FingerprintStats {
   total_fingerprints: number
@@ -55,6 +56,8 @@ export default function FingerprintTrainingDashboard() {
   const [isStartingTraining, setIsStartingTraining] = useState(false)
   const [showTrainingPanel, setShowTrainingPanel] = useState(false)
   const [artistBatchInput, setArtistBatchInput] = useState('')
+  const [trendingArtists, setTrendingArtists] = useState<TrendingArtist[]>([])
+  const [trendingLoading, setTrendingLoading] = useState(false)
 
   const fetchStats = async () => {
     try {
@@ -101,6 +104,21 @@ export default function FingerprintTrainingDashboard() {
       }
     } catch (error) {
       console.error('Error fetching training status:', error)
+    }
+  }
+
+  const fetchTrendingArtists = async () => {
+    setTrendingLoading(true)
+    try {
+      const response = await fetch(`${getApiBaseUrl()}/api/trending?limit=10`)
+      if (!response.ok) throw new Error('Failed to fetch trending artists')
+      const data = await response.json()
+      setTrendingArtists(data || [])
+    } catch (error) {
+      console.error('Error fetching trending artists:', error)
+      setTrendingArtists([])
+    } finally {
+      setTrendingLoading(false)
     }
   }
 
@@ -168,6 +186,7 @@ export default function FingerprintTrainingDashboard() {
     fetchStats()
     fetchFingerprints()
     fetchTrainingStatus()
+    fetchTrendingArtists()
     
     // Auto-refresh every 2 seconds for real-time progress
     const interval = setInterval(() => {
@@ -340,7 +359,8 @@ export default function FingerprintTrainingDashboard() {
           )}
 
           {/* Artist Batch Input */}
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-[2fr,3fr] gap-4">
+          <div className="mb-4 grid grid-cols-1 lg:grid-cols-[2fr,3fr] gap-4">
+            {/* Left: Artist batch input */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
                 Artist batch (one per line or comma-separated)
@@ -357,14 +377,68 @@ export default function FingerprintTrainingDashboard() {
                 It does <span className="text-red-400 font-semibold">not delete</span> existing fingerprints.
               </p>
             </div>
+            {/* Right: Trending type-beat artists with quick-add */}
             <div className="text-xs text-slate-400 space-y-2">
-              <p className="font-semibold text-slate-200">How it works:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>For each artist, downloads top songs & related type beats from YouTube.</li>
-                <li>Generates comprehensive 128‑dim fingerprints (300+ features).</li>
-                <li>Deletes audio immediately after fingerprinting (legal compliance).</li>
-                <li>Appends new fingerprints to your existing FAISS index.</li>
-              </ul>
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-slate-200 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-cyan-400" />
+                  YouTube “type beat” trending artists
+                </p>
+                <button
+                  onClick={fetchTrendingArtists}
+                  className="px-2 py-1 text-[11px] border border-slate-600 rounded-md text-slate-300 hover:bg-slate-800"
+                >
+                  Refresh
+                </button>
+              </div>
+              <p>
+                This panel looks at YouTube for queries like
+                <span className="text-slate-200 font-mono"> “artist name type beat” </span>
+                and ranks artists by type‑beat velocity (views / day).
+                Click an artist to add them to the training batch.
+              </p>
+
+              <div className="mt-2 max-h-40 overflow-y-auto custom-scrollbar space-y-1">
+                {trendingLoading ? (
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <Loader2 className="w-3 h-3 animate-spin text-cyan-400" />
+                    <span>Loading trending artists…</span>
+                  </div>
+                ) : trendingArtists.length === 0 ? (
+                  <div className="text-slate-500">
+                    No trending type-beat data available right now.
+                  </div>
+                ) : (
+                  trendingArtists.map((artist) => (
+                    <button
+                      key={artist.artist}
+                      type="button"
+                      onClick={() => {
+                        const current = artistBatchInput.split(/[\n,]/).map(a => a.trim()).filter(Boolean)
+                        if (!current.includes(artist.artist)) {
+                          setArtistBatchInput(
+                            (current.concat(artist.artist)).join('\n')
+                          )
+                        }
+                      }}
+                      className="w-full flex items-center justify-between px-2 py-1 rounded-md hover:bg-slate-900 text-left"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-purple-400 font-semibold text-[11px]">
+                          #{artist.rank}
+                        </span>
+                        <span className="text-slate-100 text-xs">
+                          {artist.artist}
+                        </span>
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        {Math.round(artist.velocity).toLocaleString()} views/day
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+
               <p className="pt-1">
                 Leave the box empty to use the legacy full‑dataset training list
                 (only recommended with the full regenerate option below).
