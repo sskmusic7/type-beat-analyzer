@@ -1,7 +1,12 @@
 steps:
-  # Build the container image (build context is parent directory to include ml/)
+  # Copy ml/ into backend/ for build
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-f', 'backend/Dockerfile', '-t', 'gcr.io/$PROJECT_ID/type-beat-backend', '..']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        cp -r ml backend/ml || true
+        docker build -t gcr.io/$PROJECT_ID/type-beat-backend -f backend/Dockerfile backend/
   
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'

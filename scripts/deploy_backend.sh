@@ -10,7 +10,11 @@ PROJECT_ID=$(gcloud config get-value project)
 echo "🚀 Deploying to project: $PROJECT_ID"
 echo "📁 Build context: $PROJECT_ROOT"
 
-# Build and deploy (from project root so ml/ is accessible)
+# Copy ml/ into backend/ for build
+echo "📦 Preparing build context..."
+cp -r ml backend/ml 2>/dev/null || echo "⚠️  ml/ already exists in backend/ or copy failed"
+
+# Build and deploy (from project root)
 gcloud builds submit --config backend/cloudbuild.yaml .
 
 # Get the service URL
