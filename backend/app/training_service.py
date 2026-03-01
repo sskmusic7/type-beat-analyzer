@@ -145,6 +145,23 @@ class TrainingService:
             
             # Import here to avoid issues if not available
             try:
+                # Redirect hybrid_trainer logger to our logger
+                import logging
+                hybrid_logger = logging.getLogger('hybrid_trainer')
+                hybrid_logger.handlers = []
+                hybrid_logger.addHandler(logging.StreamHandler())
+                hybrid_logger.setLevel(logging.INFO)
+                
+                # Create a custom handler that forwards to our _log method
+                class TrainingLogHandler(logging.Handler):
+                    def __init__(self, log_func):
+                        super().__init__()
+                        self.log_func = log_func
+                    def emit(self, record):
+                        self.log_func(record.getMessage())
+                
+                hybrid_logger.addHandler(TrainingLogHandler(self._log))
+                
                 from hybrid_trainer import HybridTrainer
                 self._log("✅ Successfully imported HybridTrainer")
             except ImportError as e:
