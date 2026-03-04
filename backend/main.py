@@ -3,7 +3,7 @@ FastAPI Backend for Type Beat Analyzer
 Main API endpoints for audio upload, analysis, and trending data
 """
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import List, Optional
@@ -666,26 +666,53 @@ async def train_from_streaming(artists: List[str] = Form(...), max_tracks: int =
 
 
 @app.post("/api/fingerprint/train/start")
-async def start_training(
-    clear_existing: bool = Form(True),
-    max_per_artist: int = Form(5),
-    artists: Optional[str] = Form(None)
-):
+async def start_training(request: Request):
     """
     Start fingerprint training in background
     Downloads from YouTube, generates comprehensive fingerprints, deletes audio immediately
+    
+    Accepts JSON: {"artists": ["Artist1", "Artist2"], "clear_existing": false, "max_per_artist": 5}
+    Or form data for backward compatibility
     """
     try:
-        # Parse optional artist batch from textarea / CSV
-        artist_list = None
-        if artists:
-            raw_items = [part.strip() for part in artists.replace("\n", ",").split(",")]
-            artist_list = sorted({item for item in raw_items if item})
+        # Try JSON first
+        try:
+            body = await request.json()
+            artist_list = body.get("artists", [])
+            clear_existing = body.get("clear_existing", False)  # Default to additive
+            max_per_artist = body.get("max_per_artist", 5)
+            
+            # Handle both list and string formats
+            if isinstance(artist_list, str):
+                raw_items = [part.strip() for part in artist_list.replace("\n", ",").split(",")]
+                artist_list = sorted({item for item in raw_items if item})
+            elif isinstance(artist_list, list):
+                artist_list = sorted({str(a).strip() for a in artist_list if a and str(a).strip()})
+            else:
+                artist_list = []
+        except:
+            # Fallback to form data for backward compatibility
+            form_data = await request.form()
+            artists_str = form_data.get("artists", "")
+            clear_existing = form_data.get("clear_existing", "false").lower() == "true"
+            max_per_artist = int(form_data.get("max_per_artist", 5))
+            
+            artist_list = None
+            if artists_str:
+                raw_items = [part.strip() for part in str(artists_str).replace("\n", ",").split(",")]
+                artist_list = sorted({item for item in raw_items if item})
 
         if training_service.is_running():
             raise HTTPException(
                 status_code=400,
                 detail="Training is already running. Stop it first or wait for completion."
+            )
+        
+        # Validate that artists are provided
+        if not artist_list or len(artist_list) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="No artists provided. Please provide at least one artist name."
             )
         
         success = training_service.start_training(

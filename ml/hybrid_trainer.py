@@ -33,18 +33,37 @@ class HybridTrainer:
     """
     
     def __init__(self, spotify_client_id: Optional[str] = None,
-                 spotify_client_secret: Optional[str] = None):
+                 spotify_client_secret: Optional[str] = None,
+                 youtube_api_key: Optional[str] = None):
         """
         Initialize hybrid trainer
         
         Args:
             spotify_client_id: Spotify API client ID (optional)
             spotify_client_secret: Spotify API client secret (optional)
+            youtube_api_key: YouTube Data API v3 key (optional, falls back to env var)
         """
         self.fingerprint_service = FingerprintService()
         self.training_data = []
         self.output_dir = Path("data/training_fingerprints")
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Initialize YouTube API (preferred method)
+        youtube_key = youtube_api_key or os.getenv("YOUTUBE_API_KEY")
+        if youtube_key:
+            try:
+                from googleapiclient.discovery import build
+                self.youtube = build('youtube', 'v3', developerKey=youtube_key)
+                self.youtube_api_available = True
+                logger.info("✅ YouTube Data API v3 initialized")
+            except Exception as e:
+                logger.warning(f"YouTube API initialization failed: {e}")
+                self.youtube = None
+                self.youtube_api_available = False
+        else:
+            self.youtube = None
+            self.youtube_api_available = False
+            logger.info("ℹ️  YouTube API not configured, will use yt-dlp scraping")
         
         # Initialize Spotify API (optional)
         if spotify_client_id and spotify_client_secret:
@@ -62,10 +81,171 @@ class HybridTrainer:
             self.spotify = None
             logger.info("ℹ️  Spotify API not configured (using YouTube only)")
     
+    def _parse_duration(self, duration_str: str) -> int:
+        """Parse ISO 8601 duration string to seconds"""
+        import re
+        pattern = r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?'
+        match = re.match(pattern, duration_str)
+        if not match:
+            return 0
+        hours = int(match.group(1) or 0)
+        minutes = int(match.group(2) or 0)
+        seconds = int(match.group(3) or 0)
+        return hours * 3600 + minutes * 60 + seconds
+    
+    def _search_youtube_via_api(self, artist: str, max_videos: int = 50) -> List[Dict]:
+        """
+        Search YouTube using Data API v3 (preferred method)
+        
+        Args:
+            artist: Artist name
+            max_videos: Maximum number of videos to return
+            
+        Returns:
+            List of video info dictionaries
+        """
+        if not self.youtube_api_available:
+            return []
+        
+        all_video_info = []
+        
+        # Try multiple search queries
+        search_queries = [
+            f"{artist} official music",
+            f"{artist} songs",
+            f"{artist}",
+        ]
+        
+        for search_query in search_queries:
+            try:
+                # Search for videos
+                search_response = self.youtube.search().list(
+                    q=search_query,
+                    part='id,snippet',
+                    type='video',
+                    order='viewCount',  # Sort by views (most popular first)
+                    maxResults=min(max_videos, 50),  # API limit is 50 per request
+                    videoCategoryId='10'  # Music category
+                ).execute()
+                
+                if not search_response.get('items'):
+                    logger.debug(f"No results for query: {search_query}")
+                    continue
+                
+                # Get video IDs
+                video_ids = [item['id']['videoId'] for item in search_response['items']]
+                
+                # Get detailed video statistics
+                videos_response = self.youtube.videos().list(
+                    part='statistics,snippet,contentDetails',
+                    id=','.join(video_ids)
+                ).execute()
+                
+                # Process results
+                for video in videos_response.get('items', []):
+                    stats = video.get('statistics', {})
+                    snippet = video.get('snippet', {})
+                    
+                    video_data = {
+                        'id': video['id'],
+                        'title': snippet.get('title', ''),
+                        'view_count': int(stats.get('viewCount', 0)),
+                        'like_count': int(stats.get('likeCount', 0)),
+                        'comment_count': int(stats.get('commentCount', 0)),
+                        'uploader': snippet.get('channelTitle', ''),
+                        'url': f"https://www.youtube.com/watch?v={video['id']}",
+                        'duration': self._parse_duration(video.get('contentDetails', {}).get('duration', 'PT0S')),
+                    }
+                    
+                    # Avoid duplicates
+                    if not any(v.get('id') == video_data.get('id') for v in all_video_info):
+                        all_video_info.append(video_data)
+                
+                # If we got enough results, break
+                if len(all_video_info) >= max_videos:
+                    break
+                    
+            except Exception as e:
+                logger.warning(f"Error searching YouTube API with query '{search_query}': {e}")
+                continue
+        
+        logger.info(f"📊 YouTube API found {len(all_video_info)} videos for {artist}")
+        return all_video_info[:max_videos]
+    
+    def _search_youtube_via_scraping(self, artist: str, max_videos: int = 50) -> List[Dict]:
+        """
+        Fallback: Search YouTube using yt-dlp scraping
+        
+        Args:
+            artist: Artist name
+            max_videos: Maximum number of videos to return
+            
+        Returns:
+            List of video info dictionaries
+        """
+        try:
+            import yt_dlp
+            
+            search_queries = [
+                f"ytsearch{max_videos}:{artist} official music",
+                f"ytsearch{max_videos}:{artist} songs",
+                f"ytsearch{max_videos}:{artist}",
+                f"ytsearch{max_videos}:{artist} type beat",
+            ]
+            
+            all_video_info = []
+            
+            info_opts = {
+                'quiet': True,
+                'no_warnings': True,
+                'extract_flat': False,
+                'writesubtitles': False,
+                'writeautomaticsub': False,
+            }
+            
+            for search_query in search_queries:
+                try:
+                    with yt_dlp.YoutubeDL(info_opts) as ydl:
+                        info = ydl.extract_info(search_query, download=False)
+                        if 'entries' in info:
+                            for entry in info['entries']:
+                                if entry:
+                                    video_data = {
+                                        'id': entry.get('id'),
+                                        'title': entry.get('title', ''),
+                                        'view_count': entry.get('view_count', 0),
+                                        'comment_count': entry.get('comment_count', 0),
+                                        'like_count': entry.get('like_count', 0),
+                                        'uploader': entry.get('uploader', ''),
+                                        'url': entry.get('url') or f"https://www.youtube.com/watch?v={entry.get('id')}",
+                                        'duration': entry.get('duration', 0),
+                                    }
+                                    
+                                    # Avoid duplicates
+                                    if not any(v.get('id') == video_data.get('id') for v in all_video_info):
+                                        all_video_info.append(video_data)
+                except Exception as e:
+                    logger.warning(f"Error scraping YouTube with query '{search_query}': {e}")
+                    continue
+                
+                # If we got enough results, break
+                if len(all_video_info) >= max_videos:
+                    break
+            
+            logger.info(f"📊 yt-dlp scraping found {len(all_video_info)} videos for {artist}")
+            return all_video_info[:max_videos]
+            
+        except ImportError:
+            logger.error("yt-dlp not installed. Install with: pip install yt-dlp")
+            return []
+        except Exception as e:
+            logger.error(f"Error scraping YouTube: {e}")
+            return []
+    
     def download_from_youtube(self, artist: str, max_videos: int = 50) -> List[str]:
         """
         Download official songs from artist on YouTube
-        Prioritizes top-performing videos (by views) and official channels
+        Uses YouTube API first, falls back to yt-dlp scraping
         
         Args:
             artist: Artist name
@@ -79,103 +259,77 @@ class HybridTrainer:
         temp_dir = Path(f"/tmp/typebeat_{artist}_{int(time.time())}")
         temp_dir.mkdir(parents=True, exist_ok=True)
         
+        # Step 1: Search for videos (API first, then scraping fallback)
+        all_video_info = []
+        
+        if self.youtube_api_available:
+            logger.info("🔍 Using YouTube Data API v3 for search...")
+            all_video_info = self._search_youtube_via_api(artist, max_videos)
+        
+        # Fallback to scraping if API failed or not available
+        if not all_video_info:
+            logger.info("🔍 Falling back to yt-dlp scraping...")
+            all_video_info = self._search_youtube_via_scraping(artist, max_videos)
+        
+        if not all_video_info:
+            logger.warning(f"❌ No videos found for {artist} via any method")
+            return []
+        
+        # Step 2: Filter and sort videos
+        def is_likely_official(video):
+            uploader_lower = video.get('uploader', '').lower()
+            title_lower = video.get('title', '').lower()
+            artist_lower = artist.lower()
+            
+            official_indicators = [
+                'vevo' in uploader_lower,
+                'official' in uploader_lower,
+                artist_lower in uploader_lower,
+                'official' in title_lower,
+            ]
+            
+            non_official = [
+                'cover' in title_lower,
+                'remix' in title_lower,
+                'reaction' in title_lower,
+                'live' in title_lower and 'concert' not in title_lower,
+            ]
+            
+            return any(official_indicators) and not any(non_official)
+        
+        def engagement_score(video):
+            views = video.get('view_count', 0)
+            comments = video.get('comment_count', 0)
+            likes = video.get('like_count', 0)
+            return views + (comments * 100) + (likes * 10)
+        
+        # Filter out obvious non-music content
+        filtered_videos = []
+        for video in all_video_info:
+            title_lower = video.get('title', '').lower()
+            skip_keywords = ['cover', 'remix', 'reaction', 'live performance']
+            if not any(keyword in title_lower for keyword in skip_keywords):
+                filtered_videos.append(video)
+        
+        # If filtering removed too much, use all videos
+        if len(filtered_videos) < max_videos // 2:
+            filtered_videos = all_video_info
+        
+        # Sort by official status and engagement
+        filtered_videos.sort(
+            key=lambda x: (
+                not is_likely_official(x),
+                -engagement_score(x)
+            )
+        )
+        
+        top_videos = filtered_videos[:max_videos]
+        logger.info(f"📊 Selected {len(top_videos)} top videos (sorted by performance)")
+        
+        # Step 3: Download videos using yt-dlp
         try:
             import yt_dlp
             
-            # Search for official artist songs (not type beats)
-            # Prioritize: official music, top views, official channels
-            search_queries = [
-                f"ytsearch{max_videos}:{artist} official music",  # Official music first
-                f"ytsearch{max_videos}:{artist} songs",  # General songs
-                f"ytsearch{max_videos}:{artist} type beat",  # Type beats as fallback
-            ]
-            
-            all_video_info = []
-            
-            # First, get video info without downloading (to sort by views + comments)
-            info_opts = {
-                'quiet': True,
-                'no_warnings': True,
-                'extract_flat': False,
-                'writesubtitles': False,
-                'writeautomaticsub': False,
-            }
-            
-            for search_query in search_queries[:1]:  # Start with official music only
-                try:
-                    with yt_dlp.YoutubeDL(info_opts) as ydl:
-                        # Extract info for all videos
-                        info = ydl.extract_info(search_query, download=False)
-                        if 'entries' in info:
-                            for entry in info['entries']:
-                                if entry:
-                                    # Get comment count if available
-                                    comment_count = entry.get('comment_count', 0)
-                                    
-                                    all_video_info.append({
-                                        'id': entry.get('id'),
-                                        'title': entry.get('title', ''),
-                                        'view_count': entry.get('view_count', 0),
-                                        'comment_count': comment_count,
-                                        'like_count': entry.get('like_count', 0),
-                                        'uploader': entry.get('uploader', ''),
-                                        'url': entry.get('url') or f"https://www.youtube.com/watch?v={entry.get('id')}",
-                                        'duration': entry.get('duration', 0),
-                                    })
-                except Exception as e:
-                    logger.warning(f"Error getting info for {search_query}: {e}")
-                    continue
-            
-            # Filter and sort by views (top performing)
-            # Prefer official channels (artist name in channel or "VEVO", "Official")
-            def is_likely_official(video):
-                uploader_lower = video.get('uploader', '').lower()
-                title_lower = video.get('title', '').lower()
-                artist_lower = artist.lower()
-                
-                # Check for official indicators
-                official_indicators = [
-                    'vevo' in uploader_lower,
-                    'official' in uploader_lower,
-                    artist_lower in uploader_lower,
-                    'official' in title_lower,
-                ]
-                
-                # Check for non-official indicators (covers, remixes)
-                non_official = [
-                    'cover' in title_lower,
-                    'remix' in title_lower,
-                    'reaction' in title_lower,
-                    'live' in title_lower and 'concert' not in title_lower,
-                ]
-                
-                return any(official_indicators) and not any(non_official)
-            
-            # Sort by: official first, then by engagement (views + comments)
-            # Engagement score = views + (comments * 100) to prioritize videos with high engagement
-            def engagement_score(video):
-                views = video.get('view_count', 0)
-                comments = video.get('comment_count', 0)
-                likes = video.get('like_count', 0)
-                # Weight: views are primary, comments show engagement, likes are bonus
-                return views + (comments * 100) + (likes * 10)
-            
-            all_video_info.sort(
-                key=lambda x: (
-                    not is_likely_official(x),  # Official videos first
-                    -engagement_score(x)  # Then by engagement score (descending)
-                )
-            )
-            
-            # Take top videos
-            top_videos = all_video_info[:max_videos]
-            logger.info(f"📊 Found {len(top_videos)} top videos (sorted by performance)")
-            
-            if not top_videos:
-                logger.warning(f"No videos found for {artist}")
-                return []
-            
-            # Download top videos
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'outtmpl': str(temp_dir / '%(title)s.%(ext)s'),
@@ -200,7 +354,6 @@ class HybridTrainer:
                     # Find the downloaded file
                     audio_files = list(temp_dir.glob("*.wav"))
                     if audio_files:
-                        # Get the most recently created file
                         latest_file = max(audio_files, key=lambda p: p.stat().st_mtime)
                         if str(latest_file) not in downloaded_files:
                             downloaded_files.append(str(latest_file))
