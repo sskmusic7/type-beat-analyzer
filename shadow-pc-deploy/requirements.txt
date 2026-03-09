@@ -1,0 +1,55 @@
+# FastAPI Backend
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Audio Processing
+librosa==0.10.1
+soundfile==0.12.1
+numpy==1.24.3
+scipy==1.11.4
+
+# ML & Deep Learning
+torch==2.1.0
+torchaudio==2.1.0
+scikit-learn==1.3.2
+faiss-cpu==1.7.4  # Use faiss-gpu if you have CUDA
+umap-learn==0.5.5  # For dimensionality reduction in visualization
+# tensorflow==2.13.0  # Uncomment when using Neural Audio FP checkpoints
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+redis==5.0.1
+alembic==1.12.1
+
+# YouTube API
+google-api-python-client==2.100.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.1.0
+
+# Storage
+boto3==1.29.7  # AWS S3
+google-cloud-storage==2.14.0  # Google Cloud Storage for fingerprints
+
+# Utilities
+python-dotenv==1.0.0
+httpx==0.25.2
+pydub==0.25.1
+pyacoustid==1.2.2  # For AcoustID (MusicBrainz) integration
+requests==2.31.0  # For music database APIs
+
+# Training dependencies (from ml/)
+yt-dlp==2024.11.4  # YouTube downloads for training (updated Nov 2024)
+spotipy==2.23.0  # Spotify API for training
+tqdm==4.66.1  # Progress bars
+
+# Development
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0
+# Add pytube as fallback for YouTube downloads
+pytube==15.0.0
