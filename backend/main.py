@@ -22,8 +22,19 @@ from app.processing_monitor import ProcessingMonitor
 from app.fingerprint_service import FingerprintService
 from app.music_database_apis import MusicDatabaseAggregator
 from app.training_service import TrainingService
+from app.training_service_shadow_pc import ShadowPCTrainingService
 
 load_dotenv()
+
+# Use Shadow PC for training when configured
+SHADOW_PC_WEBHOOK_URL = os.getenv("SHADOW_PC_WEBHOOK_URL")
+USE_SHADOW_PC = bool(SHADOW_PC_WEBHOOK_URL)
+if USE_SHADOW_PC:
+    logger.info(f"🖥️  Shadow PC training enabled: {SHADOW_PC_WEBHOOK_URL}")
+    shadow_pc_service = ShadowPCTrainingService()
+else:
+    logger.info("ℹ️  Shadow PC not configured, using local training")
+    shadow_pc_service = None
 
 app = FastAPI(
     title="Type Beat Analyzer API",
@@ -670,7 +681,7 @@ async def start_training(request: Request):
     """
     Start fingerprint training in background
     Downloads from YouTube, generates comprehensive fingerprints, deletes audio immediately
-    
+
     Accepts JSON: {"artists": ["Artist1", "Artist2"], "clear_existing": false, "max_per_artist": 5}
     Or form data for backward compatibility
     """
@@ -681,7 +692,7 @@ async def start_training(request: Request):
             artist_list = body.get("artists", [])
             clear_existing = body.get("clear_existing", False)  # Default to additive
             max_per_artist = body.get("max_per_artist", 5)
-            
+
             # Handle both list and string formats
             if isinstance(artist_list, str):
                 raw_items = [part.strip() for part in artist_list.replace("\n", ",").split(",")]
@@ -696,43 +707,74 @@ async def start_training(request: Request):
             artists_str = form_data.get("artists", "")
             clear_existing = form_data.get("clear_existing", "false").lower() == "true"
             max_per_artist = int(form_data.get("max_per_artist", 5))
-            
+
             artist_list = None
             if artists_str:
                 raw_items = [part.strip() for part in str(artists_str).replace("\n", ",").split(",")]
                 artist_list = sorted({item for item in raw_items if item})
 
-        if training_service.is_running():
-            raise HTTPException(
-                status_code=400,
-                detail="Training is already running. Stop it first or wait for completion."
-            )
-        
         # Validate that artists are provided
         if not artist_list or len(artist_list) == 0:
             raise HTTPException(
                 status_code=400,
                 detail="No artists provided. Please provide at least one artist name."
             )
-        
+
+        # Route to Shadow PC if configured
+        if USE_SHADOW_PC and shadow_pc_service:
+            logger.info(f"🖥️  Forwarding training to Shadow PC: {artist_list}")
+            result = await shadow_pc_service.start_training(
+                artists=artist_list,
+                max_per_artist=max_per_artist,
+                clear_existing=clear_existing
+            )
+            if not result.get("success"):
+                raise HTTPException(
+                    status_code=502,
+                    detail=result.get("message", "Shadow PC training failed")
+                )
+            return {
+                "success": True,
+                "message": "Training started on Shadow PC",
+                "status": {
+                    "status": "running",
+                    "progress": 0,
+                    "current_artist": artist_list[0] if artist_list else None,
+                    "artists_processed": 0,
+                    "total_artists": len(artist_list),
+                    "fingerprints_generated": 0,
+                    "started_at": datetime.now().isoformat(),
+                    "completed_at": None,
+                    "error": None,
+                    "logs": [f"Training forwarded to Shadow PC for {len(artist_list)} artists"]
+                }
+            }
+
+        # Local training fallback
+        if training_service.is_running():
+            raise HTTPException(
+                status_code=400,
+                detail="Training is already running. Stop it first or wait for completion."
+            )
+
         success = training_service.start_training(
             clear_existing=clear_existing,
             max_per_artist=max_per_artist,
             artists=artist_list
         )
-        
+
         if not success:
             raise HTTPException(
                 status_code=500,
                 detail="Failed to start training"
             )
-        
+
         return {
             "success": True,
             "message": "Training started",
             "status": training_service.get_status()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -749,20 +791,29 @@ async def stop_training():
     Stop currently running training
     """
     try:
+        # Route to Shadow PC if configured
+        if USE_SHADOW_PC and shadow_pc_service:
+            result = await shadow_pc_service.stop_training()
+            return {
+                "success": result.get("success", True),
+                "message": result.get("message", "Stop requested on Shadow PC"),
+                "status": {"status": "stopping"}
+            }
+
         if not training_service.is_running():
             raise HTTPException(
                 status_code=400,
                 detail="No training is currently running"
             )
-        
+
         training_service.stop_training()
-        
+
         return {
             "success": True,
             "message": "Training stop requested",
             "status": training_service.get_status()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -779,6 +830,24 @@ async def get_training_status():
     Get current training status and progress
     """
     try:
+        # Route to Shadow PC if configured
+        if USE_SHADOW_PC and shadow_pc_service:
+            status = await shadow_pc_service.get_training_status()
+            # Map Shadow PC status fields to what the frontend expects
+            return {
+                "status": status.get("status", "idle"),
+                "progress": status.get("progress", 0),
+                "current_artist": status.get("current_artist"),
+                "artists_processed": status.get("completed_artists", 0),
+                "total_artists": status.get("total_artists", 0),
+                "fingerprints_generated": 0,
+                "started_at": None,
+                "completed_at": None,
+                "error": None,
+                "logs": [status.get("message", "")] if status.get("message") else [],
+                "source": "shadow_pc"
+            }
+
         return training_service.get_status()
     except Exception as e:
         logger.error(f"Error getting training status: {str(e)}", exc_info=True)
