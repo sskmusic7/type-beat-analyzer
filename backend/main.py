@@ -887,15 +887,16 @@ async def get_training_status():
         if USE_SHADOW_PC and shadow_pc_service:
             status = await shadow_pc_service.get_training_status()
             # Map Shadow PC status fields to what the frontend expects
+            is_training = status.get("is_training", False)
             return {
-                "status": status.get("status", "idle"),
-                "progress": status.get("progress", 0),
+                "status": "running" if is_training else ("completed" if status.get("last_completed") else "idle"),
+                "progress": status.get("progress", 50 if is_training else 0),
                 "current_artist": status.get("current_artist"),
                 "artists_processed": status.get("completed_artists", 0),
                 "total_artists": status.get("total_artists", 0),
-                "fingerprints_generated": 0,
-                "started_at": None,
-                "completed_at": None,
+                "fingerprints_generated": status.get("total_fingerprints", 0),
+                "started_at": status.get("started_at"),
+                "completed_at": status.get("last_completed"),
                 "error": None,
                 "logs": [status.get("message", "")] if status.get("message") else [],
                 "source": "shadow_pc"
