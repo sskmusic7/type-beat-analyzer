@@ -14,6 +14,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, List, Dict
 
+from dotenv import load_dotenv
+# Load .env from the same directory as this script
+load_dotenv(Path(__file__).parent / ".env")
+
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 import uvicorn
@@ -21,8 +25,10 @@ import uvicorn
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+import numpy as np
 from ml.hybrid_trainer import HybridTrainer
 from app.fingerprint_service_cloud_storage import CloudStorageUploader
+from app.fingerprint_service import FingerprintService
 
 # Setup logging
 logging.basicConfig(
@@ -73,6 +79,71 @@ class TrainingStatusResponse(BaseModel):
     message: str
 
 
+def _download_faiss_from_gcs():
+    """Download current FAISS index + metadata from GCS to local data/models/"""
+    from google.cloud import storage
+
+    bucket_name = os.getenv("FINGERPRINT_BUCKET_NAME", "type-beat-fingerprints")
+    local_dir = Path("data/models")
+    local_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+
+        index_blob = bucket.blob("models/fingerprint_index.faiss")
+        if index_blob.exists():
+            index_blob.download_to_filename(str(local_dir / "fingerprint_index.faiss"))
+            logger.info("📥 Downloaded FAISS index from GCS")
+
+        metadata_blob = bucket.blob("models/fingerprint_metadata.json")
+        if metadata_blob.exists():
+            metadata_blob.download_to_filename(str(local_dir / "fingerprint_metadata.json"))
+            logger.info("📥 Downloaded metadata from GCS")
+    except Exception as e:
+        logger.warning(f"⚠️  Could not download from GCS: {e}")
+
+
+def _sync_faiss_to_gcs(uploader: CloudStorageUploader):
+    """
+    Download current FAISS index + metadata from GCS,
+    rebuild with any new local fingerprints, and re-upload.
+    This ensures GCS always has the complete, up-to-date index.
+    """
+    import tempfile
+    from google.cloud import storage
+
+    bucket_name = os.getenv("FINGERPRINT_BUCKET_NAME", "type-beat-fingerprints")
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+
+    # Use the local FingerprintService data dir (where training saved results)
+    local_index = Path("data/models/fingerprint_index.faiss")
+    local_metadata = Path("data/models/fingerprint_metadata.json")
+
+    if local_index.exists() and local_metadata.exists():
+        # Upload the local FAISS index (which now includes new fingerprints)
+        bucket.blob("models/fingerprint_index.faiss").upload_from_filename(str(local_index))
+        bucket.blob("models/fingerprint_metadata.json").upload_from_filename(str(local_metadata))
+        logger.info(f"✅ Uploaded FAISS index + metadata to GCS")
+    else:
+        logger.warning("⚠️  Local FAISS index not found, skipping GCS sync")
+
+
+def _trigger_cloud_run_refresh():
+    """Tell Cloud Run to reload fingerprints from GCS"""
+    import httpx
+    cloud_run_url = os.getenv("CLOUD_RUN_URL", "https://type-beat-backend-287783957820.us-central1.run.app")
+    try:
+        resp = httpx.post(f"{cloud_run_url}/api/fingerprint/refresh", timeout=30)
+        if resp.status_code == 200:
+            logger.info(f"✅ Cloud Run refresh triggered: {resp.json()}")
+        else:
+            logger.warning(f"⚠️  Cloud Run refresh returned {resp.status_code}: {resp.text}")
+    except Exception as e:
+        logger.warning(f"⚠️  Could not trigger Cloud Run refresh (will sync on next restart): {e}")
+
+
 def run_training_task(artists: List[str], max_per_artist: int):
     """Background task to run training"""
     global training_status
@@ -93,6 +164,11 @@ def run_training_task(artists: List[str], max_per_artist: int):
         # Initialize Cloud Storage uploader
         uploader = CloudStorageUploader()
 
+        # Download current FAISS index from GCS so we can add to it
+        _download_faiss_from_gcs()
+        fp_service = FingerprintService()
+        logger.info(f"📥 Loaded existing FAISS index with {fp_service.index.ntotal} fingerprints")
+
         total_fingerprints = 0
 
         # Process each artist
@@ -111,7 +187,26 @@ def run_training_task(artists: List[str], max_per_artist: int):
                 if count > 0:
                     logger.info(f"✅ Generated {count} fingerprints for {artist}")
 
-                    # Convert to Cloud Storage format
+                    # Add to local FAISS index
+                    for item in trainer.training_data:
+                        if item.get('artist') == artist and item.get('fingerprint'):
+                            embedding = np.array(item['fingerprint'], dtype=np.float32).reshape(1, -1)
+                            fp_service.index.add(embedding)
+                            fp_service.metadata.append({
+                                'id': fp_service.id_counter,
+                                'artist': item.get('artist', artist),
+                                'title': item.get('track_name', 'Unknown'),
+                                'audio_hash': f"shadow_pc_{artist}_{fp_service.id_counter}",
+                                'upload_date': datetime.now().isoformat(),
+                                'uploader_id': 'shadow_pc_training'
+                            })
+                            fp_service.id_counter += 1
+
+                    # Save updated FAISS index locally
+                    fp_service._save_index()
+                    logger.info(f"📊 FAISS index now has {fp_service.index.ntotal} fingerprints")
+
+                    # Also upload individual .npz files to GCS
                     artist_fingerprints = [
                         {
                             'id': f"{artist}_{j}_{hash(os.urandom(8))}",
@@ -124,15 +219,24 @@ def run_training_task(artists: List[str], max_per_artist: int):
                         for j, item in enumerate(trainer.training_data)
                         if item.get('artist') == artist
                     ]
-
-                    # Upload to Cloud Storage
-                    logger.info(f"📤 Uploading {len(artist_fingerprints)} fingerprints...")
                     uploader.upload_training_results(artist_fingerprints)
                     total_fingerprints += count
 
             except Exception as e:
                 logger.error(f"❌ Error training on {artist}: {e}")
                 continue
+
+        # Sync updated FAISS index + metadata back to GCS
+        if total_fingerprints > 0:
+            try:
+                logger.info("📤 Syncing FAISS index + metadata to GCS...")
+                _sync_faiss_to_gcs(uploader)
+                logger.info("✅ FAISS index synced to GCS")
+
+                # Trigger Cloud Run refresh
+                _trigger_cloud_run_refresh()
+            except Exception as e:
+                logger.error(f"❌ Error syncing to GCS: {e}")
 
         # Update status
         training_status["is_training"] = False

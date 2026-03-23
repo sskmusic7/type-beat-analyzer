@@ -10,6 +10,7 @@ from typing import List, Optional
 import os
 import logging
 from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +26,34 @@ from app.training_service import TrainingService
 from app.training_service_shadow_pc import ShadowPCTrainingService
 
 load_dotenv()
+
+
+def sync_fingerprints_from_gcs():
+    """Download latest FAISS index + metadata from GCS before loading FingerprintService"""
+    bucket_name = os.getenv("FINGERPRINT_BUCKET_NAME", "type-beat-fingerprints")
+    local_dir = Path("data/models")
+    local_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        from google.cloud import storage
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+
+        # Download FAISS index
+        index_blob = bucket.blob("models/fingerprint_index.faiss")
+        if index_blob.exists():
+            index_blob.download_to_filename(str(local_dir / "fingerprint_index.faiss"))
+            logger.info(f"Downloaded FAISS index from gs://{bucket_name}/models/fingerprint_index.faiss")
+
+        # Download metadata
+        metadata_blob = bucket.blob("models/fingerprint_metadata.json")
+        if metadata_blob.exists():
+            metadata_blob.download_to_filename(str(local_dir / "fingerprint_metadata.json"))
+            logger.info(f"Downloaded metadata from gs://{bucket_name}/models/fingerprint_metadata.json")
+
+        logger.info("GCS fingerprint sync complete")
+    except Exception as e:
+        logger.warning(f"Could not sync from GCS (will use local files): {e}")
 
 # Use Shadow PC for training when configured
 SHADOW_PC_WEBHOOK_URL = os.getenv("SHADOW_PC_WEBHOOK_URL")
@@ -67,6 +96,9 @@ except ImportError as e:
 
 trending_service = TrendingService()
 processing_monitor = ProcessingMonitor()
+
+# Sync fingerprints from GCS before loading local service
+sync_fingerprints_from_gcs()
 fingerprint_service = FingerprintService()
 music_db = MusicDatabaseAggregator()  # Query existing music databases
 training_service = TrainingService()  # Background fingerprint training
@@ -478,6 +510,27 @@ async def get_fingerprint_stats():
     """
     stats = fingerprint_service.get_stats()
     return FingerprintStats(**stats)
+
+
+@app.post("/api/fingerprint/refresh")
+async def refresh_fingerprints():
+    """
+    Re-sync fingerprints from GCS and reload the FAISS index.
+    Call this after Shadow PC training completes to pick up new fingerprints.
+    """
+    global fingerprint_service
+    try:
+        sync_fingerprints_from_gcs()
+        fingerprint_service = FingerprintService()
+        stats = fingerprint_service.get_stats()
+        return {
+            "success": True,
+            "message": f"Reloaded {stats['total_fingerprints']} fingerprints from {stats['artists']} artists",
+            "stats": stats
+        }
+    except Exception as e:
+        logger.error(f"Error refreshing fingerprints: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error refreshing: {str(e)}")
 
 
 @app.get("/api/fingerprint/visualization")
