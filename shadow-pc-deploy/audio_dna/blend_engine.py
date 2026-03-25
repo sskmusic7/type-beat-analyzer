@@ -197,6 +197,71 @@ class BlendEngine:
 
         return result
 
+    def blend_stems(
+        self,
+        stem_profiles: Dict[str, Dict[str, Any]],
+        top_k: int = 3,
+    ) -> Dict[str, Any]:
+        """
+        Per-stem matching: compare each stem (drums/bass/other/vocals)
+        against artist profiles that have stem data.
+
+        Args:
+            stem_profiles: Dict of stem_name -> {mix_ratio, rms, spectral_centroid, ...}
+                           from AudioDNA.profile() with enable_stems=True.
+            top_k: Number of top artist matches per stem.
+
+        Returns:
+            Dict with per-stem top matches:
+            {
+                "drums": [{"artist": "Metro Boomin", "similarity": 0.92}, ...],
+                "bass": [{"artist": "Southside", "similarity": 0.87}, ...],
+                ...
+            }
+        """
+        if not stem_profiles or not stem_profiles.get("stems"):
+            return {"error": "No stem data provided. Run analysis with enable_stems=True."}
+
+        stems_data = stem_profiles["stems"]
+        results = {}
+
+        # Load artist profiles that have stem data
+        dna_dir = Path(__file__).parent.parent / "data" / "artist_dna"
+        artist_stems = {}
+        for p in dna_dir.glob("*.json"):
+            try:
+                with open(p) as f:
+                    profile = json.load(f)
+                if profile.get("stems"):
+                    artist_stems[profile["artist"]] = profile["stems"]
+            except Exception:
+                continue
+
+        if not artist_stems:
+            return {"error": "No artist profiles with stem data found. Train with --stems flag."}
+
+        # For each stem, compare mix ratios
+        for stem_name, stem_info in stems_data.items():
+            if not isinstance(stem_info, dict) or "mix_ratio" not in stem_info:
+                continue
+
+            query_ratio = stem_info["mix_ratio"]
+            matches = []
+
+            for artist, artist_stem_data in artist_stems.items():
+                if stem_name not in artist_stem_data:
+                    continue
+                artist_ratio = artist_stem_data[stem_name].get("mix_ratio_mean", 0)
+                # Similarity = 1 - abs(difference)
+                diff = abs(query_ratio - artist_ratio)
+                sim = max(0, 1.0 - diff * 5)  # Scale: 0.2 diff = 0 similarity
+                matches.append({"artist": artist, "similarity": round(sim, 4)})
+
+            matches.sort(key=lambda x: -x["similarity"])
+            results[stem_name] = matches[:top_k]
+
+        return {"stem_matches": results}
+
     def save(self, path: str) -> None:
         """Save FAISS index + metadata to disk."""
         base = Path(path)

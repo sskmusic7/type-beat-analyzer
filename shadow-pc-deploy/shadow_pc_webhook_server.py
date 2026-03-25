@@ -554,6 +554,59 @@ async def dna_blend_upload(file: UploadFile):
             pass
 
 
+@app.post("/dna/blend-stems")
+async def dna_blend_stems(file: UploadFile):
+    """Stem-aware blend: analyze each stem (drums/bass/other/vocals) separately."""
+    import tempfile
+    import shutil
+
+    suffix = Path(file.filename).suffix if file.filename else ".wav"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, dir="/tmp") as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = tmp.name
+
+    try:
+        # Full profile with stems enabled
+        dna = AudioDNA(enable_stems=True)
+        profile = dna.profile(tmp_path)
+
+        if not profile.get("stems") or not profile["stems"].get("stems"):
+            raise HTTPException(status_code=400, detail="Stem separation failed")
+
+        engine = BlendEngine()
+        stem_result = engine.blend_stems(profile["stems"])
+
+        # Also get overall blend
+        dna_dir = Path("data/artist_dna")
+        if dna_dir.exists():
+            engine.add_artists_from_dir(str(dna_dir))
+        vector = dna.to_vector(profile)
+        overall = engine.blend(vector, top_k=5)
+
+        return {
+            "success": True,
+            "overall": overall,
+            "stems": stem_result,
+            "beat_profile": {
+                "bpm": profile.get("features", {}).get("tempo", {}).get("bpm"),
+                "key": profile.get("features", {}).get("key", {}).get("key_label"),
+                "stem_ratios": {
+                    name: round(info["mix_ratio"], 3)
+                    for name, info in profile["stems"]["stems"].items()
+                },
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+
 @app.get("/dna/similarity-matrix")
 async def dna_similarity_matrix():
     """Return artist-to-artist similarity matrix for visualization."""
