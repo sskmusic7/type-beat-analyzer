@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, Music, TrendingUp, Sparkles } from 'lucide-react'
+import { Upload, Music, TrendingUp, Sparkles, Dna } from 'lucide-react'
+import Link from 'next/link'
 import AudioUploader from './AudioUploader'
 import { AnalysisResult } from '@/types'
 
@@ -58,6 +59,15 @@ export default function Hero({ onAnalysisComplete, loading, setLoading }: HeroPr
                 />
               </div>
             </div>
+
+            {/* DNA Blend Link */}
+            <Link
+              href="/blend"
+              className="mb-8 w-full max-w-lg flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600/20 to-purple-600/20 hover:from-cyan-600/30 hover:to-purple-600/30 border border-cyan-500/30 hover:border-cyan-500/50 rounded-xl transition-all text-sm font-medium text-cyan-300"
+            >
+              <Dna className="w-4 h-4" />
+              Try DNA Blend Analysis — find your sonic fingerprint
+            </Link>
 
             {/* Stats */}
             <div className="flex gap-6 text-center md:text-left">

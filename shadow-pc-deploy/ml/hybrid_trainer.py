@@ -555,17 +555,20 @@ class HybridTrainer:
                 except:
                     pass
     
-    def train_artist_hybrid(self, artist_name: str, max_items: int = 50) -> int:
+    def train_artist_hybrid(self, artist_name: str, max_items: int = 50, keep_audio: bool = False) -> int:
         """
         Train on artist using both YouTube and Spotify
-        
+
         Args:
             artist_name: Artist to train on
             max_items: Max items per source
-            
+            keep_audio: If True, don't delete YouTube audio files after fingerprinting
+                        (caller is responsible for cleanup). Files stored in self.last_audio_files.
+
         Returns:
             Number of fingerprints generated
         """
+        self.last_audio_files = []
         logger.info(f"🎵 Training on {artist_name} (hybrid approach)...")
         
         fingerprints_generated = 0
@@ -589,11 +592,14 @@ class HybridTrainer:
                 })
                 fingerprints_generated += 1
             
-            # Delete audio file immediately
-            try:
-                os.unlink(audio_file)
-            except:
-                pass
+            # Delete audio file immediately (unless caller wants to keep them)
+            if keep_audio:
+                self.last_audio_files.append(audio_file)
+            else:
+                try:
+                    os.unlink(audio_file)
+                except:
+                    pass
         
         # Method 2: Spotify previews (supplement, when available)
         if self.spotify:

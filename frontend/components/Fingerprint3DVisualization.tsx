@@ -174,8 +174,8 @@ export default function Fingerprint3DVisualization() {
         {typeof window !== 'undefined' && (
           <Plot
             data={traces}
-            layout={layout}
-            config={config}
+            layout={layout as any}
+            config={config as any}
             style={{ width: '100%', height: '100%' }}
           />
         )}

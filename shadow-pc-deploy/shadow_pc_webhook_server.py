@@ -18,7 +18,8 @@ from dotenv import load_dotenv
 # Load .env from the same directory as this script
 load_dotenv(Path(__file__).parent / ".env")
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uvicorn
 
@@ -47,6 +48,14 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Shadow PC Training Server",
     description="Receives training requests from Type Beat admin panel"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "https://type-beat-backend-287783957820.us-central1.run.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Global state
@@ -199,8 +208,8 @@ def run_training_task(artists: List[str], max_per_artist: int):
             logger.info(f"[{i+1}/{len(artists)}] Training on: {artist}")
 
             try:
-                # Train on this artist
-                count = trainer.train_artist_hybrid(artist, max_items=max_per_artist)
+                # Train on this artist (keep audio for DNA profiling)
+                count = trainer.train_artist_hybrid(artist, max_items=max_per_artist, keep_audio=True)
 
                 if count > 0:
                     logger.info(f"✅ Generated {count} fingerprints for {artist}")
@@ -240,8 +249,38 @@ def run_training_task(artists: List[str], max_per_artist: int):
                     uploader.upload_training_results(artist_fingerprints)
                     total_fingerprints += count
                     training_status["logs"].append(f"✅ {artist}: {count} fingerprints")
+
+                    # --- Audio DNA profiling (uses kept audio files) ---
+                    audio_files = getattr(trainer, 'last_audio_files', [])
+                    if audio_files:
+                        try:
+                            dna_builder = ArtistDNA(enable_stems=False)
+                            dna_profile = dna_builder.build_artist_profile(audio_files, artist, save=True)
+                            dna_storage = DNAStorage()
+                            dna_storage.upload_artist_profile(dna_profile)
+                            training_status["logs"].append(
+                                f"🧬 {artist}: DNA profile ({dna_profile['track_count']} tracks, "
+                                f"BPM {dna_profile['tempo'].get('bpm_mean', '?')})"
+                            )
+                            logger.info(f"🧬 Built DNA profile for {artist}")
+                        except Exception as dna_err:
+                            logger.warning(f"DNA profiling failed for {artist}: {dna_err}")
+                            training_status["logs"].append(f"⚠️ {artist}: DNA failed - {str(dna_err)[:60]}")
+
+                    # Clean up audio files now that DNA is done
+                    for af in audio_files:
+                        try:
+                            os.unlink(af)
+                        except Exception:
+                            pass
                 else:
                     training_status["logs"].append(f"⚠️ {artist}: 0 fingerprints (no results)")
+                    # Clean up any leftover audio
+                    for af in getattr(trainer, 'last_audio_files', []):
+                        try:
+                            os.unlink(af)
+                        except Exception:
+                            pass
 
                 training_status["completed_artists"] = i + 1
                 training_status["total_fingerprints"] = total_fingerprints
@@ -470,6 +509,93 @@ async def dna_list_artists():
         except Exception:
             continue
     return {"artists": profiles}
+
+
+@app.post("/dna/blend-upload")
+async def dna_blend_upload(file: UploadFile):
+    """Analyze an uploaded beat and return artist blend breakdown."""
+    import tempfile
+    import shutil
+
+    # Save uploaded file to temp location
+    suffix = Path(file.filename).suffix if file.filename else ".wav"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, dir="/tmp") as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = tmp.name
+
+    try:
+        # Load blend engine
+        engine = BlendEngine()
+        dna_dir = Path("data/artist_dna")
+        if dna_dir.exists():
+            engine.add_artists_from_dir(str(dna_dir))
+
+        if engine.index.ntotal == 0:
+            raise HTTPException(status_code=400, detail="No artist profiles loaded. Train artists first.")
+
+        dna = AudioDNA(enable_stems=False)
+        profile = dna.profile_fast(tmp_path)
+        vector = dna.to_vector(profile)
+        result = engine.blend(vector, top_k=5)
+        result["beat_profile"] = {
+            "bpm": profile.get("features", {}).get("tempo", {}).get("bpm"),
+            "key": profile.get("features", {}).get("key", {}).get("key_label"),
+            "top_tags": [t["tag"] for t in profile.get("clap_tags", [])[:5]],
+        }
+        return {"success": True, **result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+
+@app.get("/dna/similarity-matrix")
+async def dna_similarity_matrix():
+    """Return artist-to-artist similarity matrix for visualization."""
+    dna_dir = Path("data/artist_dna")
+    if not dna_dir.exists():
+        return {"artists": [], "matrix": [], "pairs": []}
+
+    engine = BlendEngine()
+    engine.add_artists_from_dir(str(dna_dir))
+
+    if engine.index.ntotal < 2:
+        return {"artists": [], "matrix": [], "pairs": []}
+
+    raw = engine.artist_similarity_matrix()
+    artists = sorted(raw.keys())
+
+    # Build 2D matrix
+    matrix = []
+    for a in artists:
+        row = []
+        for b in artists:
+            if a == b:
+                row.append(1.0)
+            else:
+                row.append(raw.get(a, {}).get(b, 0.0))
+        matrix.append(row)
+
+    # Build sorted pairs list
+    pairs = []
+    seen = set()
+    for a in artists:
+        for b in artists:
+            if a != b and (b, a) not in seen:
+                seen.add((a, b))
+                pairs.append({
+                    "artist_a": a,
+                    "artist_b": b,
+                    "similarity": raw.get(a, {}).get(b, 0.0),
+                })
+    pairs.sort(key=lambda p: -p["similarity"])
+
+    return {"artists": artists, "matrix": matrix, "pairs": pairs}
 
 
 def main():
