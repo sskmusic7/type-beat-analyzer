@@ -53,7 +53,11 @@ training_status = {
     "current_artist": None,
     "started_at": None,
     "last_completed": None,
-    "total_fingerprints": 0
+    "total_fingerprints": 0,
+    "completed_artists": 0,
+    "total_artists": 0,
+    "progress": 0,
+    "logs": []
 }
 
 # Request models
@@ -76,6 +80,10 @@ class TrainingStatusResponse(BaseModel):
     started_at: Optional[str]
     last_completed: Optional[str]
     total_fingerprints: int
+    completed_artists: int = 0
+    total_artists: int = 0
+    progress: float = 0
+    logs: List[str] = []
     message: str
 
 
@@ -132,10 +140,13 @@ def _sync_faiss_to_gcs(uploader: CloudStorageUploader):
 
 def _trigger_cloud_run_refresh():
     """Tell Cloud Run to reload fingerprints from GCS"""
-    import httpx
+    import requests as req
     cloud_run_url = os.getenv("CLOUD_RUN_URL", "https://type-beat-backend-287783957820.us-central1.run.app")
     try:
-        resp = httpx.post(f"{cloud_run_url}/api/fingerprint/refresh", timeout=30)
+        resp = req.post(
+            f"{cloud_run_url}/api/fingerprint/refresh",
+            timeout=30
+        )
         if resp.status_code == 200:
             logger.info(f"✅ Cloud Run refresh triggered: {resp.json()}")
         else:
@@ -151,12 +162,15 @@ def run_training_task(artists: List[str], max_per_artist: int):
     try:
         training_status["is_training"] = True
         training_status["started_at"] = datetime.now().isoformat()
+        training_status["completed_artists"] = 0
+        training_status["total_artists"] = len(artists)
+        training_status["progress"] = 0
+        training_status["logs"] = [f"Starting training for {len(artists)} artists..."]
 
         logger.info(f"🚀 Starting training on Shadow PC for {len(artists)} artists")
 
         # Initialize trainer with API keys from environment
         trainer = HybridTrainer(
-            youtube_api_key=os.getenv("YOUTUBE_API_KEY"),
             spotify_client_id=os.getenv("SPOTIFY_CLIENT_ID"),
             spotify_client_secret=os.getenv("SPOTIFY_CLIENT_SECRET")
         )
@@ -178,6 +192,8 @@ def run_training_task(artists: List[str], max_per_artist: int):
                 break
 
             training_status["current_artist"] = artist
+            training_status["progress"] = round((i / len(artists)) * 100, 1)
+            training_status["logs"].append(f"[{i+1}/{len(artists)}] Training: {artist}")
             logger.info(f"[{i+1}/{len(artists)}] Training on: {artist}")
 
             try:
@@ -221,9 +237,19 @@ def run_training_task(artists: List[str], max_per_artist: int):
                     ]
                     uploader.upload_training_results(artist_fingerprints)
                     total_fingerprints += count
+                    training_status["logs"].append(f"✅ {artist}: {count} fingerprints")
+                else:
+                    training_status["logs"].append(f"⚠️ {artist}: 0 fingerprints (no results)")
+
+                training_status["completed_artists"] = i + 1
+                training_status["total_fingerprints"] = total_fingerprints
+                training_status["progress"] = round(((i + 1) / len(artists)) * 100, 1)
 
             except Exception as e:
                 logger.error(f"❌ Error training on {artist}: {e}")
+                training_status["logs"].append(f"❌ {artist}: error - {str(e)[:80]}")
+                training_status["completed_artists"] = i + 1
+                training_status["progress"] = round(((i + 1) / len(artists)) * 100, 1)
                 continue
 
         # Sync updated FAISS index + metadata back to GCS
@@ -243,6 +269,8 @@ def run_training_task(artists: List[str], max_per_artist: int):
         training_status["current_artist"] = None
         training_status["last_completed"] = datetime.now().isoformat()
         training_status["total_fingerprints"] = total_fingerprints
+        training_status["progress"] = 100
+        training_status["logs"].append(f"🏁 Training complete! {total_fingerprints} fingerprints from {len(artists)} artists")
 
         logger.info(f"✅ Training complete! Generated {total_fingerprints} fingerprints")
 
@@ -312,6 +340,10 @@ async def get_training_status():
         started_at=training_status["started_at"],
         last_completed=training_status["last_completed"],
         total_fingerprints=training_status["total_fingerprints"],
+        completed_artists=training_status["completed_artists"],
+        total_artists=training_status["total_artists"],
+        progress=training_status["progress"],
+        logs=training_status["logs"][-20:],
         message="Training in progress" if training_status["is_training"] else "Idle"
     )
 

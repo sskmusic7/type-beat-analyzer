@@ -91,13 +91,40 @@ export default function FingerprintTrainingDashboard() {
     }
   }
 
+  const [prevTrainingStatus, setPrevTrainingStatus] = useState<string | null>(null)
+
+  const refreshFingerprintIndex = async () => {
+    try {
+      console.log('🔄 Triggering fingerprint index refresh on Cloud Run...')
+      const response = await fetch(`${getApiBaseUrl()}/api/fingerprint/refresh`, {
+        method: 'POST'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Fingerprint index refreshed:', data)
+      } else {
+        console.warn('⚠️ Refresh returned:', response.status)
+      }
+    } catch (error) {
+      console.error('Error refreshing fingerprint index:', error)
+    }
+  }
+
   const fetchTrainingStatus = async () => {
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/fingerprint/train/status`)
       if (!response.ok) throw new Error('Failed to fetch training status')
       const data = await response.json()
+
+      // Detect transition to "completed" — trigger Cloud Run refresh
+      if (data.status === 'completed' && prevTrainingStatus === 'running') {
+        await refreshFingerprintIndex()
+        await fetchStats()
+        await fetchFingerprints()
+      }
+      setPrevTrainingStatus(data.status)
       setTrainingStatus(data)
-      
+
       // Auto-show panel if training is running
       if (data.status === 'running' || data.status === 'stopping') {
         setShowTrainingPanel(true)
