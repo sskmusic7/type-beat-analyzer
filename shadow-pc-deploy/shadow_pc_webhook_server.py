@@ -28,6 +28,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 import numpy as np
 from ml.hybrid_trainer import HybridTrainer
 from app.fingerprint_service_cloud_storage import CloudStorageUploader
+from audio_dna import AudioDNA, ArtistDNA, BlendEngine
+from audio_dna.gcs_storage import DNAStorage
 from app.fingerprint_service import FingerprintService
 
 # Setup logging
@@ -366,6 +368,110 @@ async def stop_training():
     }
 
 
+# ── Audio DNA Endpoints ──────────────────────────────────────
+
+class DNAAnalyzeRequest(BaseModel):
+    audio_path: str
+    artist: Optional[str] = None
+    enable_stems: bool = False
+
+class DNABuildArtistRequest(BaseModel):
+    artist: str
+    audio_paths: List[str]
+    enable_stems: bool = False
+    upload_gcs: bool = True
+
+class DNABlendRequest(BaseModel):
+    audio_path: str
+    top_k: int = 5
+
+
+@app.post("/dna/analyze")
+async def dna_analyze(request: DNAAnalyzeRequest):
+    """Generate AudioDNA profile for a single track."""
+    try:
+        dna = AudioDNA(enable_stems=request.enable_stems)
+        if request.enable_stems:
+            profile = dna.profile(request.audio_path)
+        else:
+            profile = dna.profile_fast(request.audio_path)
+        vector = dna.to_vector(profile)
+        profile["vector"] = vector
+        return {"success": True, "profile": profile}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/dna/build-artist")
+async def dna_build_artist(request: DNABuildArtistRequest, background_tasks: BackgroundTasks):
+    """Build artist DNA profile from multiple tracks (background task)."""
+    def _build():
+        try:
+            builder = ArtistDNA(enable_stems=request.enable_stems)
+            profile = builder.build_artist_profile(request.audio_paths, request.artist)
+            if request.upload_gcs:
+                storage = DNAStorage()
+                storage.upload_artist_profile(profile)
+            logger.info(f"Artist DNA built for {request.artist}")
+        except Exception as e:
+            logger.error(f"Artist DNA build failed: {e}")
+
+    background_tasks.add_task(_build)
+    return {"success": True, "message": f"Building artist DNA for {request.artist} in background"}
+
+
+@app.post("/dna/blend")
+async def dna_blend(request: DNABlendRequest):
+    """Analyze a beat and return artist blend breakdown."""
+    try:
+        # Load blend engine from local profiles
+        engine = BlendEngine()
+        dna_dir = Path("data/artist_dna")
+        if dna_dir.exists():
+            engine.add_artists_from_dir(str(dna_dir))
+
+        if engine.index.ntotal == 0:
+            raise HTTPException(status_code=400, detail="No artist profiles loaded. Train artists first.")
+
+        dna = AudioDNA(enable_stems=False)
+        profile = dna.profile_fast(request.audio_path)
+        vector = dna.to_vector(profile)
+        result = engine.blend(vector, top_k=request.top_k)
+        result["beat_profile"] = {
+            "bpm": profile.get("features", {}).get("tempo", {}).get("bpm"),
+            "key": profile.get("features", {}).get("key", {}).get("key_label"),
+            "top_tags": [t["tag"] for t in profile.get("clap_tags", [])[:5]],
+        }
+        return {"success": True, **result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/dna/artists")
+async def dna_list_artists():
+    """List all artist DNA profiles available locally."""
+    dna_dir = Path("data/artist_dna")
+    if not dna_dir.exists():
+        return {"artists": []}
+    profiles = []
+    for p in sorted(dna_dir.glob("*.json")):
+        try:
+            import json as _json
+            with open(p) as f:
+                data = _json.load(f)
+            profiles.append({
+                "artist": data.get("artist", p.stem),
+                "track_count": data.get("track_count", 0),
+                "bpm_mean": data.get("tempo", {}).get("bpm_mean"),
+                "top_key": data.get("key", {}).get("top_key"),
+            })
+        except Exception:
+            continue
+    return {"artists": profiles}
+
+
 def main():
     """Start the webhook server"""
     import argparse
@@ -398,6 +504,10 @@ def main():
     logger.info("  POST /train/start   - Start training")
     logger.info("  GET  /train/status  - Get training status")
     logger.info("  POST /train/stop    - Stop training")
+    logger.info("  POST /dna/analyze   - AudioDNA profile for a track")
+    logger.info("  POST /dna/build-artist - Build artist DNA (background)")
+    logger.info("  POST /dna/blend     - Blend analysis (artist matching)")
+    logger.info("  GET  /dna/artists   - List artist profiles")
     logger.info("")
 
     # Run server

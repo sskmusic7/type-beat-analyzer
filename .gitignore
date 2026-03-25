@@ -28,6 +28,10 @@ data/models/*.pth
 *_secrets.md
 *_credentials.md
 ACRCLOUD_PROJECT_KEYS.md
+*-key.json
+shadow-pc-deploy/models/
+shadow-pc-deploy/.cache/
+shadow-pc-deploy/data/artist_dna/
 
 # IDEs
 .vscode/
