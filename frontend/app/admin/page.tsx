@@ -3,7 +3,8 @@
 import FingerprintTrainingDashboard from '@/components/FingerprintTrainingDashboard'
 import Fingerprint3DVisualization from '@/components/Fingerprint3DVisualization'
 import MissionControl from '@/components/MissionControl'
-import { Shield, Database, Activity, Box } from 'lucide-react'
+import ArtistDNAPanel from '@/components/ArtistDNAPanel'
+import { Shield, Database, Activity, Box, Dna } from 'lucide-react'
 
 export default function AdminDashboard() {
   return (
@@ -29,6 +30,15 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-semibold text-white">Fingerprint Training</h2>
           </div>
           <FingerprintTrainingDashboard />
+        </section>
+
+        {/* Artist DNA Profiles */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Dna className="w-5 h-5 text-green-400" />
+            <h2 className="text-xl font-semibold text-white">Artist DNA Profiles</h2>
+          </div>
+          <ArtistDNAPanel />
         </section>
 
         {/* 3D Visualization */}
