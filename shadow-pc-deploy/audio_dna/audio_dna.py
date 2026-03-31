@@ -127,29 +127,45 @@ class AudioDNA:
         finally:
             self.enable_stems = old_stems
 
+    # Feature weights — tuned from variance analysis across 92 artists.
+    # CLAP dims have ~0.013 std (low discrimination in same-genre data),
+    # while MFCCs have ~0.04-0.27 std and BPM/rhythm ~0.05-0.07.
+    # Weights amplify discriminating features so cosine similarity spreads out.
+    FEATURE_WEIGHTS = {
+        "clap": 0.1,          # 52 dims — heavily downweight (low variance within genre)
+        "bpm": 8.0,           # 1 dim — strong discriminator
+        "key_conf": 5.0,      # 1 dim
+        "spectral": 4.0,      # 2 dims
+        "mfcc": 6.0,          # 20 dims — strongest discriminator
+        "energy": 5.0,        # 1 dim
+        "rhythm": 6.0,        # 2 dims
+        "stems": 4.0,         # 4 dims
+    }
+
     def to_vector(self, dna: Dict[str, Any]) -> List[float]:
         """
-        Flatten an AudioDNA profile into a fixed-size numeric vector
+        Flatten an AudioDNA profile into a weighted 83-dim numeric vector
         suitable for FAISS indexing and similarity search.
 
-        Vector layout:
-            [0:52]   CLAP scores (52 dims)
-            [52:53]  BPM normalized (0-1, range 40-200)
-            [53:54]  Key confidence
-            [54:55]  Spectral centroid normalized
-            [55:56]  Spectral flatness
-            [56:76]  MFCC means (20 dims)
-            [76:77]  RMS energy
-            [77:78]  Onset density normalized
-            [78:79]  Beat regularity normalized
-            [79:83]  Stem mix ratios (drums, bass, other, vocals) — 0 if no stems
-        Total: 83 dims
+        Features are weighted by discriminative power so that cosine
+        similarity actually separates different-sounding artists.
+
+        Vector layout (83 dims):
+            [0:52]   CLAP scores × 0.3
+            [52:53]  BPM normalized × 4.0
+            [53:54]  Key confidence × 3.0
+            [54:56]  Spectral (centroid, flatness) × 2.0
+            [56:76]  MFCC means × 3.0
+            [76:77]  RMS energy × 3.0
+            [77:79]  Rhythm (onset density, beat regularity) × 3.0
+            [79:83]  Stem mix ratios × 2.5
         """
+        w = self.FEATURE_WEIGHTS
         vec: List[float] = []
 
-        # CLAP vector (52 dims)
+        # CLAP vector (52 dims) — downweighted
         if "clap_vector" in dna and dna["clap_vector"]:
-            vec.extend(dna["clap_vector"])
+            vec.extend([v * w["clap"] for v in dna["clap_vector"]])
         else:
             vec.extend([0.0] * 52)
 
@@ -157,37 +173,36 @@ class AudioDNA:
         features = dna.get("features", {})
         tempo = features.get("tempo", {})
         bpm = tempo.get("bpm", 0.0)
-        vec.append(max(0.0, min(1.0, (bpm - 40) / 160)))  # normalize 40-200
+        vec.append(max(0.0, min(1.0, (bpm - 40) / 160)) * w["bpm"])
 
         key_info = features.get("key", {})
-        vec.append(key_info.get("confidence", 0.0))
+        vec.append(key_info.get("confidence", 0.0) * w["key_conf"])
 
         spectral = features.get("spectral", {})
-        vec.append(min(1.0, spectral.get("centroid_mean", 0) / 8000))
-        vec.append(spectral.get("flatness_mean", 0))
+        vec.append(min(1.0, spectral.get("centroid_mean", 0) / 8000) * w["spectral"])
+        vec.append(spectral.get("flatness_mean", 0) * w["spectral"])
 
         mfcc = features.get("mfcc", {})
         mfcc_means = mfcc.get("mfcc_mean", [0.0] * 20)
-        # Normalize MFCCs to roughly [-1, 1] range
-        vec.extend([m / 100.0 for m in mfcc_means[:20]])
+        vec.extend([m / 100.0 * w["mfcc"] for m in mfcc_means[:20]])
         if len(mfcc_means) < 20:
             vec.extend([0.0] * (20 - len(mfcc_means)))
 
         energy = features.get("energy", {})
-        vec.append(energy.get("rms_mean", 0))
+        vec.append(energy.get("rms_mean", 0) * w["energy"])
 
         rhythm = features.get("rhythm", {})
-        vec.append(min(1.0, rhythm.get("onset_density", 0) / 10.0))
-        vec.append(min(1.0, rhythm.get("beat_regularity", 0) / 200.0))
+        vec.append(min(1.0, rhythm.get("onset_density", 0) / 10.0) * w["rhythm"])
+        vec.append(min(1.0, rhythm.get("beat_regularity", 0) / 200.0) * w["rhythm"])
 
         # Stems (4 dims)
         stems = dna.get("stems", {})
         if stems and "stems" in stems:
             stem_data = stems["stems"]
-            vec.append(stem_data.get("drums", {}).get("mix_ratio", 0))
-            vec.append(stem_data.get("bass", {}).get("mix_ratio", 0))
-            vec.append(stem_data.get("other", {}).get("mix_ratio", 0))
-            vec.append(stem_data.get("vocals", {}).get("mix_ratio", 0))
+            vec.append(stem_data.get("drums", {}).get("mix_ratio", 0) * w["stems"])
+            vec.append(stem_data.get("bass", {}).get("mix_ratio", 0) * w["stems"])
+            vec.append(stem_data.get("other", {}).get("mix_ratio", 0) * w["stems"])
+            vec.append(stem_data.get("vocals", {}).get("mix_ratio", 0) * w["stems"])
         else:
             vec.extend([0.0] * 4)
 

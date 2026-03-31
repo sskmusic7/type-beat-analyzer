@@ -5,11 +5,10 @@ FAISS-based similarity search over 83-dim AudioDNA vectors.
 Given a user's beat, finds the closest artist matches and computes
 blend percentages (e.g., "70% Drake / 20% Travis Scott / 10% Metro Boomin").
 
-Features:
-    - Build FAISS index from artist DNA profiles
-    - Query with a beat's DNA vector
-    - Multi-artist blend decomposition
-    - Artist similarity matrix
+Uses mean-centering to remove genre baseline — cosine similarity measures
+how an artist *deviates* from the average, not absolute position.
+This gives real discrimination (range -1 to +1) instead of everything
+clustering at 0.95+.
 """
 
 import json
@@ -28,24 +27,18 @@ DNA_DIM = 83
 
 class BlendEngine:
     """
-    Similarity search engine using FAISS over AudioDNA vectors.
+    Similarity search engine using FAISS over mean-centered AudioDNA vectors.
 
-    Supports two modes:
-    1. **Artist centroids**: One vector per artist (fast, coarse).
-       Good for "your beat sounds like Artist X".
-    2. **Track-level**: One vector per track across all artists (detailed).
-       Good for finding the single closest reference track.
+    Mean-centering subtracts the population average so that cosine similarity
+    captures *relative* differences between artists rather than shared genre
+    characteristics. This spreads similarity from [-1, +1] instead of [0.93, 1.0].
     """
 
     def __init__(self, index_path: Optional[str] = None):
-        """
-        Args:
-            index_path: Path to load a saved FAISS index + metadata.
-                        If None, starts with an empty index.
-        """
         self.index = faiss.IndexFlatIP(DNA_DIM)  # Inner product (cosine after normalization)
         self.metadata: List[Dict[str, Any]] = []  # Parallel list: one entry per vector
-        self._artist_centroids: Dict[str, np.ndarray] = {}
+        self._artist_centroids: Dict[str, np.ndarray] = {}  # Raw (uncentered) vectors
+        self._mean_vector: Optional[np.ndarray] = None  # Population mean for centering
 
         if index_path and Path(index_path).exists():
             self.load(index_path)
@@ -57,18 +50,74 @@ class BlendEngine:
             return vec / norm
         return vec
 
+    def _center(self, vec: np.ndarray) -> np.ndarray:
+        """Subtract population mean to remove genre baseline."""
+        if self._mean_vector is not None:
+            return vec - self._mean_vector
+        return vec
+
+    def add_artists_from_dir(self, directory: str) -> int:
+        """
+        Load all artist DNA profiles from a directory, compute population
+        mean, mean-center all vectors, then build the FAISS index.
+
+        Returns number of artists added.
+        """
+        # Phase 1: Load all raw centroids
+        raw_profiles: List[Tuple[Dict[str, Any], np.ndarray]] = []
+        for p in sorted(Path(directory).glob("*.json")):
+            try:
+                with open(p) as f:
+                    profile = json.load(f)
+                if "centroid_vector" in profile:
+                    vec = np.array(profile["centroid_vector"], dtype=np.float32)
+                    raw_profiles.append((profile, vec))
+            except Exception as e:
+                logger.warning(f"Failed to load {p.name}: {e}")
+
+        if not raw_profiles:
+            return 0
+
+        # Phase 2: Compute population mean
+        all_vecs = np.array([v for _, v in raw_profiles], dtype=np.float32)
+        self._mean_vector = all_vecs.mean(axis=0)
+
+        # Phase 3: Mean-center, normalize, and add to FAISS index
+        count = 0
+        for profile, raw_vec in raw_profiles:
+            artist = profile.get("artist", "unknown")
+            self._artist_centroids[artist] = raw_vec  # Store raw for later
+
+            centered = self._center(raw_vec)
+            normed = self._normalize(centered).reshape(1, -1)
+            self.index.add(normed)
+
+            self.metadata.append({
+                "artist": artist,
+                "type": "centroid",
+                "track_count": profile.get("track_count", 0),
+                "top_key": profile.get("key", {}).get("top_key", ""),
+                "bpm_mean": profile.get("tempo", {}).get("bpm_mean", 0),
+            })
+            count += 1
+
+        logger.info(f"Loaded {count} artist profiles from {directory} (mean-centered)")
+        return count
+
     def add_artist(self, artist_profile: Dict[str, Any]) -> None:
         """
-        Add an artist's centroid vector to the index.
-
-        Args:
-            artist_profile: Output from ArtistDNA.build_artist_profile().
+        Add a single artist's centroid vector to the index.
+        NOTE: If mean_vector hasn't been computed yet (no batch load),
+        this falls back to raw normalization without centering.
         """
         artist = artist_profile["artist"]
         centroid = np.array(artist_profile["centroid_vector"], dtype=np.float32)
-        centroid_norm = self._normalize(centroid).reshape(1, -1)
+        self._artist_centroids[artist] = centroid
 
-        self.index.add(centroid_norm)
+        centered = self._center(centroid)
+        normed = self._normalize(centered).reshape(1, -1)
+        self.index.add(normed)
+
         self.metadata.append({
             "artist": artist,
             "type": "centroid",
@@ -76,43 +125,17 @@ class BlendEngine:
             "top_key": artist_profile.get("key", {}).get("top_key", ""),
             "bpm_mean": artist_profile.get("tempo", {}).get("bpm_mean", 0),
         })
-        self._artist_centroids[artist] = centroid
-
         logger.info(f"Added artist centroid: {artist} ({artist_profile.get('track_count', '?')} tracks)")
-
-    def add_artists_from_dir(self, directory: str) -> int:
-        """
-        Load all artist DNA profiles from a directory and add to index.
-
-        Returns number of artists added.
-        """
-        count = 0
-        for p in sorted(Path(directory).glob("*.json")):
-            try:
-                with open(p) as f:
-                    profile = json.load(f)
-                if "centroid_vector" in profile:
-                    self.add_artist(profile)
-                    count += 1
-            except Exception as e:
-                logger.warning(f"Failed to load {p.name}: {e}")
-        logger.info(f"Loaded {count} artist profiles from {directory}")
-        return count
 
     def query(
         self, beat_vector: List[float], top_k: int = 5
     ) -> List[Dict[str, Any]]:
         """
-        Find the top-k most similar artists/tracks to a beat.
-
-        Args:
-            beat_vector: 83-dim DNA vector from AudioDNA.to_vector().
-            top_k: Number of results.
-
-        Returns:
-            List of dicts with artist, similarity score, and metadata.
+        Find the top-k most similar artists to a beat.
+        The beat vector is mean-centered the same way as artist vectors.
         """
         vec = np.array(beat_vector, dtype=np.float32)
+        vec = self._center(vec)
         vec = self._normalize(vec).reshape(1, -1)
 
         k = min(top_k, self.index.ntotal)
@@ -148,11 +171,10 @@ class BlendEngine:
             return {"matches": [], "blend": {}, "primary": None}
 
         # Convert similarity scores to percentages
-        # Use softmax-style normalization for smooth blend
+        # Shift to positive range, then softmax with temperature
         scores = np.array([m["similarity"] for m in matches], dtype=np.float32)
-        # Shift to positive range and apply temperature
         shifted = scores - scores.min() + 0.1
-        exp_scores = np.exp(shifted * 3.0)  # temperature=3 for sharper distribution
+        exp_scores = np.exp(shifted * 5.0)  # temperature=5 for sharper peaks
         percentages = exp_scores / exp_scores.sum()
 
         blend = {}
@@ -172,16 +194,14 @@ class BlendEngine:
     def artist_similarity_matrix(self) -> Dict[str, Dict[str, float]]:
         """
         Compute pairwise similarity between all artist centroids.
-
-        Returns:
-            Nested dict: matrix[artist_a][artist_b] = similarity score.
+        Uses mean-centered vectors for proper discrimination.
         """
         artists = list(self._artist_centroids.keys())
         if len(artists) < 2:
             return {}
 
         vecs = np.array([
-            self._normalize(self._artist_centroids[a])
+            self._normalize(self._center(self._artist_centroids[a]))
             for a in artists
         ], dtype=np.float32)
 
@@ -205,19 +225,6 @@ class BlendEngine:
         """
         Per-stem matching: compare each stem (drums/bass/other/vocals)
         against artist profiles that have stem data.
-
-        Args:
-            stem_profiles: Dict of stem_name -> {mix_ratio, rms, spectral_centroid, ...}
-                           from AudioDNA.profile() with enable_stems=True.
-            top_k: Number of top artist matches per stem.
-
-        Returns:
-            Dict with per-stem top matches:
-            {
-                "drums": [{"artist": "Metro Boomin", "similarity": 0.92}, ...],
-                "bass": [{"artist": "Southside", "similarity": 0.87}, ...],
-                ...
-            }
         """
         if not stem_profiles or not stem_profiles.get("stems"):
             return {"error": "No stem data provided. Run analysis with enable_stems=True."}
@@ -252,9 +259,8 @@ class BlendEngine:
                 if stem_name not in artist_stem_data:
                     continue
                 artist_ratio = artist_stem_data[stem_name].get("mix_ratio_mean", 0)
-                # Similarity = 1 - abs(difference)
                 diff = abs(query_ratio - artist_ratio)
-                sim = max(0, 1.0 - diff * 5)  # Scale: 0.2 diff = 0 similarity
+                sim = max(0, 1.0 - diff * 5)
                 matches.append({"artist": artist, "similarity": round(sim, 4)})
 
             matches.sort(key=lambda x: -x["similarity"])
@@ -263,7 +269,7 @@ class BlendEngine:
         return {"stem_matches": results}
 
     def save(self, path: str) -> None:
-        """Save FAISS index + metadata to disk."""
+        """Save FAISS index + metadata + mean vector to disk."""
         base = Path(path)
         base.mkdir(parents=True, exist_ok=True)
 
@@ -271,15 +277,18 @@ class BlendEngine:
         with open(base / "dna_metadata.json", "w") as f:
             json.dump(self.metadata, f, indent=2)
 
-        # Save centroids separately for rebuilding
         centroids = {k: v.tolist() for k, v in self._artist_centroids.items()}
         with open(base / "dna_centroids.json", "w") as f:
             json.dump(centroids, f, indent=2)
 
+        if self._mean_vector is not None:
+            with open(base / "dna_mean_vector.json", "w") as f:
+                json.dump(self._mean_vector.tolist(), f)
+
         logger.info(f"Saved blend engine to {base} ({self.index.ntotal} vectors)")
 
     def load(self, path: str) -> None:
-        """Load FAISS index + metadata from disk."""
+        """Load FAISS index + metadata + mean vector from disk."""
         base = Path(path)
 
         index_file = base / "dna_index.faiss"
@@ -298,3 +307,8 @@ class BlendEngine:
             with open(centroids_file) as f:
                 raw = json.load(f)
             self._artist_centroids = {k: np.array(v, dtype=np.float32) for k, v in raw.items()}
+
+        mean_file = base / "dna_mean_vector.json"
+        if mean_file.exists():
+            with open(mean_file) as f:
+                self._mean_vector = np.array(json.load(f), dtype=np.float32)

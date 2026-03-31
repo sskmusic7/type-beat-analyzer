@@ -244,7 +244,7 @@ def main():
             logger.info(f"  {r['artist']}: {r.get('error', 'no tracks')}")
 
     # Save results summary
-    summary_path = dna_dir / "_batch_results.json"
+    summary_path = Path("data") / "batch_results.json"
     with open(summary_path, "w") as f:
         json.dump({"timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"), "results": results}, f, indent=2)
     logger.info(f"\nResults saved to {summary_path}")

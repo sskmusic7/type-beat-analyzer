@@ -2950,5 +2950,909 @@
     "audio_hash": "youtube_Young Thug_368",
     "upload_date": null,
     "uploader_id": "comprehensive_youtube_regeneration"
+  },
+  {
+    "id": 369,
+    "artist": "brent faiyaz",
+    "title": "Bryson Tiller - Exchange (Official Video)",
+    "audio_hash": "shadow_pc_brent faiyaz_369",
+    "upload_date": "2026-03-23T21:02:31.855257",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 370,
+    "artist": "brent faiyaz",
+    "title": "GoldLink - Crew (Official Video) ft. Brent Faiyaz, Shy Glizzy",
+    "audio_hash": "shadow_pc_brent faiyaz_370",
+    "upload_date": "2026-03-23T21:02:31.855292",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 371,
+    "artist": "brent faiyaz",
+    "title": "6LACK - Pretty Little Fears (ft. J. Cole) [Official Music Video]",
+    "audio_hash": "shadow_pc_brent faiyaz_371",
+    "upload_date": "2026-03-23T21:02:31.855307",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 372,
+    "artist": "brent faiyaz",
+    "title": "Blaiz Fayah & Tribal Kush - Bad (Official Music Video)",
+    "audio_hash": "shadow_pc_brent faiyaz_372",
+    "upload_date": "2026-03-23T21:02:31.855318",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 373,
+    "artist": "brent faiyaz",
+    "title": "PARTYNEXTDOOR - Break From Toronto [Official Music Video]",
+    "audio_hash": "shadow_pc_brent faiyaz_373",
+    "upload_date": "2026-03-23T21:02:31.855328",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 374,
+    "artist": "kojo funds",
+    "title": "Mabel - Finders Keepers (Official Video) ft. Kojo Funds",
+    "audio_hash": "shadow_pc_kojo funds_374",
+    "upload_date": "2026-03-23T21:02:58.469804",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 375,
+    "artist": "kojo funds",
+    "title": "Kojo Funds - I Like ft. WizKid [Official Video]",
+    "audio_hash": "shadow_pc_kojo funds_375",
+    "upload_date": "2026-03-23T21:02:58.469851",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 376,
+    "artist": "kojo funds",
+    "title": "Wretch 32 - Tell Me (Official Video) ft. Kojo Funds, Jahlani",
+    "audio_hash": "shadow_pc_kojo funds_376",
+    "upload_date": "2026-03-23T21:02:58.469884",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 377,
+    "artist": "kojo funds",
+    "title": "Check (with RAYE)",
+    "audio_hash": "shadow_pc_kojo funds_377",
+    "upload_date": "2026-03-23T21:02:58.469919",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 378,
+    "artist": "kojo funds",
+    "title": "Yxng Bane ft Kojo Funds - Fine Wine [Music Video] @YxngBane @KojoFunds \uff5c Link Up TV",
+    "audio_hash": "shadow_pc_kojo funds_378",
+    "upload_date": "2026-03-23T21:02:58.469944",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 379,
+    "artist": "rema",
+    "title": "Rema, Selena Gomez - Calm Down (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_379",
+    "upload_date": "2026-03-23T21:03:28.599737",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 380,
+    "artist": "rema",
+    "title": "Rema - Calm Down (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_380",
+    "upload_date": "2026-03-23T21:03:28.599775",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 381,
+    "artist": "rema",
+    "title": "Ayra Starr - Rush (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_381",
+    "upload_date": "2026-03-23T21:03:28.599796",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 382,
+    "artist": "rema",
+    "title": "Burna Boy - On The Low [Official Music Video]",
+    "audio_hash": "shadow_pc_rema_382",
+    "upload_date": "2026-03-23T21:03:28.599817",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 383,
+    "artist": "rema",
+    "title": "Calm Down Rema vibe \ud83d\udd25 #calmdown #rema",
+    "audio_hash": "shadow_pc_rema_383",
+    "upload_date": "2026-03-23T21:03:28.599834",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 384,
+    "artist": "shallipoppi",
+    "title": "Shallipopi - Laho (Official Video)",
+    "audio_hash": "shadow_pc_shallipoppi_384",
+    "upload_date": "2026-03-23T21:03:55.795851",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 385,
+    "artist": "shallipoppi",
+    "title": "Rema, Shallipopi - BENIN BOYS",
+    "audio_hash": "shadow_pc_shallipoppi_385",
+    "upload_date": "2026-03-23T21:03:55.795901",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 386,
+    "artist": "shallipoppi",
+    "title": "Shallipopi, Burna Boy- Laho II (Official Video)",
+    "audio_hash": "shadow_pc_shallipoppi_386",
+    "upload_date": "2026-03-23T21:03:55.795929",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 387,
+    "artist": "shallipoppi",
+    "title": "Shallipopi - Obapluto (Official Video) feat. Pa Monday-Edo",
+    "audio_hash": "shadow_pc_shallipoppi_387",
+    "upload_date": "2026-03-23T21:03:55.795955",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 388,
+    "artist": "shallipoppi",
+    "title": "Smur Lee & ODUMODUBLVCK (feat Shallipopi) - JUJU (visualizer)",
+    "audio_hash": "shadow_pc_shallipoppi_388",
+    "upload_date": "2026-03-23T21:03:55.795977",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 389,
+    "artist": "sneakbo",
+    "title": "Sneakbo Ft Giggs - Active",
+    "audio_hash": "shadow_pc_sneakbo_389",
+    "upload_date": "2026-03-23T21:04:19.983823",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 390,
+    "artist": "sneakbo",
+    "title": "Tujamo & Plastik Funk ft. Sneakbo - Dr. Who! (Official Video) HD",
+    "audio_hash": "shadow_pc_sneakbo_390",
+    "upload_date": "2026-03-23T21:04:19.983847",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 391,
+    "artist": "sneakbo",
+    "title": "POLITICAL PEAK & SNEAKBO - WAVE LIKE US",
+    "audio_hash": "shadow_pc_sneakbo_391",
+    "upload_date": "2026-03-23T21:04:19.983859",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 392,
+    "artist": "sneakbo",
+    "title": "Sneakbo ft. Kida Kudz \u2013 Love Is A Gamble [Music Video] \uff5c GRM Daily",
+    "audio_hash": "shadow_pc_sneakbo_392",
+    "upload_date": "2026-03-23T21:04:19.983872",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 393,
+    "artist": "stormzy",
+    "title": "Ed Sheeran - Shape of You (Official Music Video)",
+    "audio_hash": "shadow_pc_stormzy_393",
+    "upload_date": "2026-03-23T21:04:52.752433",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 394,
+    "artist": "stormzy",
+    "title": "Ed Sheeran & Justin Bieber - I Don't Care [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_394",
+    "upload_date": "2026-03-23T21:04:52.752460",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 395,
+    "artist": "stormzy",
+    "title": "Ed Sheeran - Galway Girl [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_395",
+    "upload_date": "2026-03-23T21:04:52.752478",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 396,
+    "artist": "stormzy",
+    "title": "Ed Sheeran - Castle On The Hill [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_396",
+    "upload_date": "2026-03-23T21:04:52.752498",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 397,
+    "artist": "stormzy",
+    "title": "Burna Boy - On The Low [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_397",
+    "upload_date": "2026-03-23T21:04:52.752514",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 398,
+    "artist": "vybz kartel",
+    "title": "Gyptian - Hold You \uff5c Official Music Video",
+    "audio_hash": "shadow_pc_vybz kartel_398",
+    "upload_date": "2026-03-23T21:05:23.065318",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 399,
+    "artist": "vybz kartel",
+    "title": "Spice, Vybz Kartel - Conjugal Visit",
+    "audio_hash": "shadow_pc_vybz kartel_399",
+    "upload_date": "2026-03-23T21:05:23.065358",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 400,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel - Colouring This Life",
+    "audio_hash": "shadow_pc_vybz kartel_400",
+    "upload_date": "2026-03-23T21:05:23.065372",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 401,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel - Any Weather (Official Video)",
+    "audio_hash": "shadow_pc_vybz kartel_401",
+    "upload_date": "2026-03-23T21:05:23.065387",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 402,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel, Wiz Kid - Wine To The Top (Official Video)",
+    "audio_hash": "shadow_pc_vybz kartel_402",
+    "upload_date": "2026-03-23T21:05:23.065396",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 403,
+    "artist": "wizkid",
+    "title": "Burna Boy - On The Low [Official Music Video]",
+    "audio_hash": "shadow_pc_wizkid_403",
+    "upload_date": "2026-03-23T21:05:47.467554",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 404,
+    "artist": "wizkid",
+    "title": "Burna Boy - Last Last [Official Music Video]",
+    "audio_hash": "shadow_pc_wizkid_404",
+    "upload_date": "2026-03-23T21:05:47.467573",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 405,
+    "artist": "wizkid",
+    "title": "Wizkid - Joro (Official Video)",
+    "audio_hash": "shadow_pc_wizkid_405",
+    "upload_date": "2026-03-23T21:05:47.467582",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 406,
+    "artist": "wizkid",
+    "title": "Drake - One Dance (Lyrics) ft. Wizkid & Kyla",
+    "audio_hash": "shadow_pc_wizkid_406",
+    "upload_date": "2026-03-23T21:05:47.467591",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 407,
+    "artist": "brent faiyaz",
+    "title": "GoldLink - Crew (Official Video) ft. Brent Faiyaz, Shy Glizzy",
+    "audio_hash": "shadow_pc_brent faiyaz_407",
+    "upload_date": "2026-03-24T19:49:02.135973",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 408,
+    "artist": "brent faiyaz",
+    "title": "Brent Faiyaz - TRUST [Official Audio]",
+    "audio_hash": "shadow_pc_brent faiyaz_408",
+    "upload_date": "2026-03-24T19:49:02.136008",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 409,
+    "artist": "brent faiyaz",
+    "title": "Brent Faiyaz - REHAB (WINTER IN PARIS) [Official Video]",
+    "audio_hash": "shadow_pc_brent faiyaz_409",
+    "upload_date": "2026-03-24T19:49:02.136023",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 410,
+    "artist": "brent faiyaz",
+    "title": "Brent Faiyaz - DEAD MAN WALKING [Official Audio]",
+    "audio_hash": "shadow_pc_brent faiyaz_410",
+    "upload_date": "2026-03-24T19:49:02.136038",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 411,
+    "artist": "brent faiyaz",
+    "title": "Poison",
+    "audio_hash": "shadow_pc_brent faiyaz_411",
+    "upload_date": "2026-03-24T19:49:02.136051",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 412,
+    "artist": "kojo funds",
+    "title": "Mabel - Finders Keepers (Official Video) ft. Kojo Funds",
+    "audio_hash": "shadow_pc_kojo funds_412",
+    "upload_date": "2026-03-24T19:49:26.657690",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 413,
+    "artist": "kojo funds",
+    "title": "Kojo Funds - I Like ft. WizKid [Official Video]",
+    "audio_hash": "shadow_pc_kojo funds_413",
+    "upload_date": "2026-03-24T19:49:26.657713",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 414,
+    "artist": "kojo funds",
+    "title": "Wretch 32 - Tell Me (Official Video) ft. Kojo Funds, Jahlani",
+    "audio_hash": "shadow_pc_kojo funds_414",
+    "upload_date": "2026-03-24T19:49:26.657725",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 415,
+    "artist": "kojo funds",
+    "title": "Yxng Bane ft Kojo Funds - Fine Wine [Music Video] @YxngBane @KojoFunds \uff5c Link Up TV",
+    "audio_hash": "shadow_pc_kojo funds_415",
+    "upload_date": "2026-03-24T19:49:26.657736",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 416,
+    "artist": "kojo funds",
+    "title": "Kojo Funds - My 9ine [Music Video] @KojoFunds \uff5c Link Up TV",
+    "audio_hash": "shadow_pc_kojo funds_416",
+    "upload_date": "2026-03-24T19:49:26.657747",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 417,
+    "artist": "rema",
+    "title": "Rema, Selena Gomez - Calm Down (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_417",
+    "upload_date": "2026-03-24T19:49:51.056442",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 418,
+    "artist": "rema",
+    "title": "Master KG - Jerusalema  [Feat. Nomcebo] (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_418",
+    "upload_date": "2026-03-24T19:49:51.056467",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 419,
+    "artist": "rema",
+    "title": "Rema - Calm Down (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_419",
+    "upload_date": "2026-03-24T19:49:51.056478",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 420,
+    "artist": "rema",
+    "title": "Ayra Starr - Rush (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_420",
+    "upload_date": "2026-03-24T19:49:51.056492",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 421,
+    "artist": "rema",
+    "title": "Burna Boy - On The Low [Official Music Video]",
+    "audio_hash": "shadow_pc_rema_421",
+    "upload_date": "2026-03-24T19:49:51.056501",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 422,
+    "artist": "shallipoppi",
+    "title": "Shallipopi - Laho (Official Video)",
+    "audio_hash": "shadow_pc_shallipoppi_422",
+    "upload_date": "2026-03-24T19:50:13.972910",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 423,
+    "artist": "shallipoppi",
+    "title": "Rema, Shallipopi - BENIN BOYS",
+    "audio_hash": "shadow_pc_shallipoppi_423",
+    "upload_date": "2026-03-24T19:50:13.972936",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 424,
+    "artist": "shallipoppi",
+    "title": "Shallipopi, Burna Boy- Laho II (Official Video)",
+    "audio_hash": "shadow_pc_shallipoppi_424",
+    "upload_date": "2026-03-24T19:50:13.972956",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 425,
+    "artist": "shallipoppi",
+    "title": "Shallipopi - Obapluto (Official Video) feat. Pa Monday-Edo",
+    "audio_hash": "shadow_pc_shallipoppi_425",
+    "upload_date": "2026-03-24T19:50:13.972980",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 426,
+    "artist": "shallipoppi",
+    "title": "Smur Lee & ODUMODUBLVCK (feat Shallipopi) - JUJU (visualizer)",
+    "audio_hash": "shadow_pc_shallipoppi_426",
+    "upload_date": "2026-03-24T19:50:13.973008",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 427,
+    "artist": "sneakbo",
+    "title": "Sneakbo Ft Giggs - Active",
+    "audio_hash": "shadow_pc_sneakbo_427",
+    "upload_date": "2026-03-24T19:50:31.088229",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 428,
+    "artist": "sneakbo",
+    "title": "Tujamo & Plastik Funk ft. Sneakbo - Dr. Who! (Official Video) HD",
+    "audio_hash": "shadow_pc_sneakbo_428",
+    "upload_date": "2026-03-24T19:50:31.088258",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 429,
+    "artist": "sneakbo",
+    "title": "Sneakbo ft Not3s - Nah [Music Video] \uff5c GRM Daily",
+    "audio_hash": "shadow_pc_sneakbo_429",
+    "upload_date": "2026-03-24T19:50:31.088274",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 430,
+    "artist": "stormzy",
+    "title": "Ed Sheeran - Shape of You (Official Music Video)",
+    "audio_hash": "shadow_pc_stormzy_430",
+    "upload_date": "2026-03-24T19:50:53.936895",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 431,
+    "artist": "stormzy",
+    "title": "Ed Sheeran & Justin Bieber - I Don't Care [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_431",
+    "upload_date": "2026-03-24T19:50:53.936920",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 432,
+    "artist": "stormzy",
+    "title": "Ed Sheeran - Galway Girl [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_432",
+    "upload_date": "2026-03-24T19:50:53.936932",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 433,
+    "artist": "stormzy",
+    "title": "Ed Sheeran - Castle On The Hill [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_433",
+    "upload_date": "2026-03-24T19:50:53.936942",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 434,
+    "artist": "stormzy",
+    "title": "Burna Boy - On The Low [Official Music Video]",
+    "audio_hash": "shadow_pc_stormzy_434",
+    "upload_date": "2026-03-24T19:50:53.936955",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 435,
+    "artist": "vybz kartel",
+    "title": "Gyptian - Hold You \uff5c Official Music Video",
+    "audio_hash": "shadow_pc_vybz kartel_435",
+    "upload_date": "2026-03-24T19:51:17.230639",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 436,
+    "artist": "vybz kartel",
+    "title": "Spice, Vybz Kartel - Conjugal Visit",
+    "audio_hash": "shadow_pc_vybz kartel_436",
+    "upload_date": "2026-03-24T19:51:17.230669",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 437,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel - Colouring This Life",
+    "audio_hash": "shadow_pc_vybz kartel_437",
+    "upload_date": "2026-03-24T19:51:17.230684",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 438,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel - Any Weather (Official Video)",
+    "audio_hash": "shadow_pc_vybz kartel_438",
+    "upload_date": "2026-03-24T19:51:17.230696",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 439,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel, Wiz Kid - Wine To The Top (Official Video)",
+    "audio_hash": "shadow_pc_vybz kartel_439",
+    "upload_date": "2026-03-24T19:51:17.230706",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 440,
+    "artist": "wizkid",
+    "title": "Wizkid - Joro (Official Video)",
+    "audio_hash": "shadow_pc_wizkid_440",
+    "upload_date": "2026-03-24T19:51:40.572871",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 441,
+    "artist": "wizkid",
+    "title": "Wizkid - Essence (Official Video) ft. Tems",
+    "audio_hash": "shadow_pc_wizkid_441",
+    "upload_date": "2026-03-24T19:51:40.572901",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 442,
+    "artist": "wizkid",
+    "title": "Wizkid - Come Closer (Official Video) ft. Drake",
+    "audio_hash": "shadow_pc_wizkid_442",
+    "upload_date": "2026-03-24T19:51:40.572914",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 443,
+    "artist": "wizkid",
+    "title": "STARBOY - SOCO ft. TERRI X SPOTLESS X CEEZA MILLI X WIZKID (OFFICIAL VIDEO)",
+    "audio_hash": "shadow_pc_wizkid_443",
+    "upload_date": "2026-03-24T19:51:40.572929",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 444,
+    "artist": "wizkid",
+    "title": "MHD - Bella (feat. WizKid)",
+    "audio_hash": "shadow_pc_wizkid_444",
+    "upload_date": "2026-03-24T19:51:40.572939",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 445,
+    "artist": "stormzy",
+    "title": "Ed Sheeran - Shape of You (Official Music Video)",
+    "audio_hash": "shadow_pc_stormzy_445",
+    "upload_date": "2026-03-24T19:56:50.288599",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 446,
+    "artist": "brent faiyaz",
+    "title": "Bryson Tiller - Exchange (Official Video)",
+    "audio_hash": "shadow_pc_brent faiyaz_446",
+    "upload_date": "2026-03-24T20:53:42.730258",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 447,
+    "artist": "brent faiyaz",
+    "title": "GoldLink - Crew (Official Video) ft. Brent Faiyaz, Shy Glizzy",
+    "audio_hash": "shadow_pc_brent faiyaz_447",
+    "upload_date": "2026-03-24T20:53:42.730297",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 448,
+    "artist": "brent faiyaz",
+    "title": "6LACK - Pretty Little Fears (ft. J. Cole) [Official Music Video]",
+    "audio_hash": "shadow_pc_brent faiyaz_448",
+    "upload_date": "2026-03-24T20:53:42.730312",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 449,
+    "artist": "brent faiyaz",
+    "title": "Blaiz Fayah & Tribal Kush - Bad (Official Music Video)",
+    "audio_hash": "shadow_pc_brent faiyaz_449",
+    "upload_date": "2026-03-24T20:53:42.730324",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 450,
+    "artist": "brent faiyaz",
+    "title": "PARTYNEXTDOOR - Break From Toronto [Official Music Video]",
+    "audio_hash": "shadow_pc_brent faiyaz_450",
+    "upload_date": "2026-03-24T20:53:42.730333",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 451,
+    "artist": "kojo funds",
+    "title": "Mabel - Finders Keepers (Official Video) ft. Kojo Funds",
+    "audio_hash": "shadow_pc_kojo funds_451",
+    "upload_date": "2026-03-24T20:54:08.994203",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 452,
+    "artist": "kojo funds",
+    "title": "Kojo Funds - I Like ft. WizKid [Official Video]",
+    "audio_hash": "shadow_pc_kojo funds_452",
+    "upload_date": "2026-03-24T20:54:08.994229",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 453,
+    "artist": "kojo funds",
+    "title": "Wretch 32 - Tell Me (Official Video) ft. Kojo Funds, Jahlani",
+    "audio_hash": "shadow_pc_kojo funds_453",
+    "upload_date": "2026-03-24T20:54:08.994242",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 454,
+    "artist": "kojo funds",
+    "title": "Yxng Bane ft Kojo Funds - Fine Wine [Music Video] @YxngBane @KojoFunds \uff5c Link Up TV",
+    "audio_hash": "shadow_pc_kojo funds_454",
+    "upload_date": "2026-03-24T20:54:08.994254",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 455,
+    "artist": "kojo funds",
+    "title": "Kojo Funds - My 9ine [Music Video] @KojoFunds \uff5c Link Up TV",
+    "audio_hash": "shadow_pc_kojo funds_455",
+    "upload_date": "2026-03-24T20:54:08.994263",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 456,
+    "artist": "rema",
+    "title": "Rema, Selena Gomez - Calm Down (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_456",
+    "upload_date": "2026-03-24T20:54:35.607818",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 457,
+    "artist": "rema",
+    "title": "Master KG - Jerusalema  [Feat. Nomcebo] (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_457",
+    "upload_date": "2026-03-24T20:54:35.607844",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 458,
+    "artist": "rema",
+    "title": "Rema - Calm Down (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_458",
+    "upload_date": "2026-03-24T20:54:35.607857",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 459,
+    "artist": "rema",
+    "title": "Ayra Starr - Rush (Official Music Video)",
+    "audio_hash": "shadow_pc_rema_459",
+    "upload_date": "2026-03-24T20:54:35.607868",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 460,
+    "artist": "rema",
+    "title": "Burna Boy - On The Low [Official Music Video]",
+    "audio_hash": "shadow_pc_rema_460",
+    "upload_date": "2026-03-24T20:54:35.607877",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 461,
+    "artist": "shallipoppi",
+    "title": "Shallipopi - Laho (Official Video)",
+    "audio_hash": "shadow_pc_shallipoppi_461",
+    "upload_date": "2026-03-24T20:55:01.188878",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 462,
+    "artist": "shallipoppi",
+    "title": "Rema, Shallipopi - BENIN BOYS",
+    "audio_hash": "shadow_pc_shallipoppi_462",
+    "upload_date": "2026-03-24T20:55:01.188901",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 463,
+    "artist": "shallipoppi",
+    "title": "Shallipopi, Burna Boy- Laho II (Official Video)",
+    "audio_hash": "shadow_pc_shallipoppi_463",
+    "upload_date": "2026-03-24T20:55:01.188915",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 464,
+    "artist": "shallipoppi",
+    "title": "Shallipopi - Obapluto (Official Video) feat. Pa Monday-Edo",
+    "audio_hash": "shadow_pc_shallipoppi_464",
+    "upload_date": "2026-03-24T20:55:01.188938",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 465,
+    "artist": "shallipoppi",
+    "title": "Smur Lee & ODUMODUBLVCK (feat Shallipopi) - JUJU (visualizer)",
+    "audio_hash": "shadow_pc_shallipoppi_465",
+    "upload_date": "2026-03-24T20:55:01.188947",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 466,
+    "artist": "sneakbo",
+    "title": "Sneakbo Ft Giggs - Active",
+    "audio_hash": "shadow_pc_sneakbo_466",
+    "upload_date": "2026-03-24T20:55:17.871537",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 467,
+    "artist": "sneakbo",
+    "title": "Tujamo & Plastik Funk ft. Sneakbo - Dr. Who! (Official Video) HD",
+    "audio_hash": "shadow_pc_sneakbo_467",
+    "upload_date": "2026-03-24T20:55:17.871560",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 468,
+    "artist": "sneakbo",
+    "title": "Sneakbo ft Not3s - Nah [Music Video] \uff5c GRM Daily",
+    "audio_hash": "shadow_pc_sneakbo_468",
+    "upload_date": "2026-03-24T20:55:17.871572",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 469,
+    "artist": "stormzy",
+    "title": "Little Mix - Power (Official Video) ft. Stormzy",
+    "audio_hash": "shadow_pc_stormzy_469",
+    "upload_date": "2026-03-24T20:55:38.212464",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 470,
+    "artist": "stormzy",
+    "title": "STORMZY - VOSSI BOP",
+    "audio_hash": "shadow_pc_stormzy_470",
+    "upload_date": "2026-03-24T20:55:38.212487",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 471,
+    "artist": "stormzy",
+    "title": "STORMZY - SHUT UP",
+    "audio_hash": "shadow_pc_stormzy_471",
+    "upload_date": "2026-03-24T20:55:38.212500",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 472,
+    "artist": "stormzy",
+    "title": "STORMZY - OWN IT (feat. ED SHEERAN & BURNA BOY)",
+    "audio_hash": "shadow_pc_stormzy_472",
+    "upload_date": "2026-03-24T20:55:38.212512",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 473,
+    "artist": "vybz kartel",
+    "title": "Gyptian - Hold You \uff5c Official Music Video",
+    "audio_hash": "shadow_pc_vybz kartel_473",
+    "upload_date": "2026-03-24T20:56:02.982757",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 474,
+    "artist": "vybz kartel",
+    "title": "Spice, Vybz Kartel - Conjugal Visit",
+    "audio_hash": "shadow_pc_vybz kartel_474",
+    "upload_date": "2026-03-24T20:56:02.982802",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 475,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel - Colouring This Life",
+    "audio_hash": "shadow_pc_vybz kartel_475",
+    "upload_date": "2026-03-24T20:56:02.982823",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 476,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel - Any Weather (Official Video)",
+    "audio_hash": "shadow_pc_vybz kartel_476",
+    "upload_date": "2026-03-24T20:56:02.982847",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 477,
+    "artist": "vybz kartel",
+    "title": "Vybz Kartel, Wiz Kid - Wine To The Top (Official Video)",
+    "audio_hash": "shadow_pc_vybz kartel_477",
+    "upload_date": "2026-03-24T20:56:02.982866",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 478,
+    "artist": "wizkid",
+    "title": "Burna Boy - On The Low [Official Music Video]",
+    "audio_hash": "shadow_pc_wizkid_478",
+    "upload_date": "2026-03-24T20:56:24.855889",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 479,
+    "artist": "wizkid",
+    "title": "Burna Boy - Last Last [Official Music Video]",
+    "audio_hash": "shadow_pc_wizkid_479",
+    "upload_date": "2026-03-24T20:56:24.855911",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 480,
+    "artist": "wizkid",
+    "title": "Wizkid - Joro (Official Video)",
+    "audio_hash": "shadow_pc_wizkid_480",
+    "upload_date": "2026-03-24T20:56:24.855921",
+    "uploader_id": "shadow_pc_training"
+  },
+  {
+    "id": 481,
+    "artist": "wizkid",
+    "title": "Drake - One Dance (Lyrics) ft. Wizkid & Kyla",
+    "audio_hash": "shadow_pc_wizkid_481",
+    "upload_date": "2026-03-24T20:56:24.855929",
+    "uploader_id": "shadow_pc_training"
   }
 ]

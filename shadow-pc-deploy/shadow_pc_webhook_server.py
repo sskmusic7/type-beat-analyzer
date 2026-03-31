@@ -496,6 +496,8 @@ async def dna_list_artists():
         return {"artists": []}
     profiles = []
     for p in sorted(dna_dir.glob("*.json")):
+        if p.stem.startswith("_"):
+            continue
         try:
             import json as _json
             with open(p) as f:
@@ -647,8 +649,9 @@ async def dna_similarity_matrix():
                     "similarity": raw.get(a, {}).get(b, 0.0),
                 })
     pairs.sort(key=lambda p: -p["similarity"])
+    top_pairs = pairs[:50]
 
-    return {"artists": artists, "matrix": matrix, "pairs": pairs}
+    return {"artists": artists, "matrix": matrix, "pairs": pairs, "top_pairs": top_pairs}
 
 
 def main():

@@ -10,6 +10,7 @@ import pickle
 import tempfile
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
+from datetime import datetime
 import numpy as np
 from google.cloud import storage
 from google.cloud.storage import Blob
@@ -127,8 +128,8 @@ class CloudStorageFingerprintService:
             )
             with tempfile.NamedTemporaryFile(delete=False, suffix=".npz") as tmp:
                 np.savez_compressed(tmp.name, embedding=embedding)
-                embedding_blob.upload_from_file(tmp.name, content_type="application/octet-stream")
-                Path(tmp.name).unlink()
+            embedding_blob.upload_from_filename(tmp.name, content_type="application/octet-stream")
+            Path(tmp.name).unlink()
 
         except Exception as e:
             logger.error(f"❌ Error uploading fingerprint to cloud: {e}")
@@ -235,8 +236,8 @@ class CloudStorageUploader:
                     )
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".npz") as tmp:
                         np.savez_compressed(tmp.name, embedding=embedding)
-                        embedding_blob.upload_from_file(tmp.name)
-                        Path(tmp.name).unlink()
+                    embedding_blob.upload_from_filename(tmp.name)
+                    Path(tmp.name).unlink()
 
             # Upload FAISS index if provided
             if index_path and Path(index_path).exists():
@@ -253,7 +254,7 @@ class CloudStorageUploader:
             # Create upload log
             log_blob = self.bucket.blob(f"logs/training_{hash(os.urandom(8))}.json")
             log_data = {
-                'timestamp': str(pd.Timestamp.now()) if 'pd' in dir() else str(datetime.now()),
+                'timestamp': datetime.now().isoformat(),
                 'fingerprints_uploaded': len(fingerprint_data),
                 'source': 'shadow_pc'
             }

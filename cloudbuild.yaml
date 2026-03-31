@@ -1,0 +1,5 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-f', 'backend/Dockerfile', '-t', 'gcr.io/eminent-century-464801-b0/type-beat-backend', '.']
+images:
+  - 'gcr.io/eminent-century-464801-b0/type-beat-backend'

@@ -890,7 +890,7 @@ async def get_training_status():
             is_training = status.get("is_training", False)
             return {
                 "status": "running" if is_training else ("completed" if status.get("last_completed") else "idle"),
-                "progress": status.get("progress", 50 if is_training else 0),
+                "progress": status.get("progress", 0),
                 "current_artist": status.get("current_artist"),
                 "artists_processed": status.get("completed_artists", 0),
                 "total_artists": status.get("total_artists", 0),
@@ -898,7 +898,7 @@ async def get_training_status():
                 "started_at": status.get("started_at"),
                 "completed_at": status.get("last_completed"),
                 "error": None,
-                "logs": [status.get("message", "")] if status.get("message") else [],
+                "logs": status.get("logs", []),
                 "source": "shadow_pc"
             }
 

@@ -127,8 +127,8 @@ class CloudStorageFingerprintService:
             )
             with tempfile.NamedTemporaryFile(delete=False, suffix=".npz") as tmp:
                 np.savez_compressed(tmp.name, embedding=embedding)
-                embedding_blob.upload_from_file(tmp.name, content_type="application/octet-stream")
-                Path(tmp.name).unlink()
+            embedding_blob.upload_from_filename(tmp.name, content_type="application/octet-stream")
+            Path(tmp.name).unlink()
 
         except Exception as e:
             logger.error(f"❌ Error uploading fingerprint to cloud: {e}")
@@ -235,8 +235,8 @@ class CloudStorageUploader:
                     )
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".npz") as tmp:
                         np.savez_compressed(tmp.name, embedding=embedding)
-                        embedding_blob.upload_from_file(tmp.name)
-                        Path(tmp.name).unlink()
+                    embedding_blob.upload_from_filename(tmp.name)
+                    Path(tmp.name).unlink()
 
             # Upload FAISS index if provided
             if index_path and Path(index_path).exists():
