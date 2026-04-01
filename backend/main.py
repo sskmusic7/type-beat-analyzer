@@ -12,7 +12,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
-import httpx
+from contextlib import asynccontextmanager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ from app.fingerprint_service import FingerprintService
 from app.music_database_apis import MusicDatabaseAggregator
 from app.training_service import TrainingService
 from app.training_service_shadow_pc import ShadowPCTrainingService
+from app.dna_service import DnaService
 
 load_dotenv()
 
@@ -66,10 +67,23 @@ else:
     logger.info("ℹ️  Shadow PC not configured, using local training")
     shadow_pc_service = None
 
+@asynccontextmanager
+async def lifespan(app):
+    """Startup: initialize DnaService (download profiles from GCS, build FAISS index)."""
+    try:
+        dna_service = DnaService.get_instance()
+        dna_service.initialize()
+        logger.info("DnaService initialized successfully")
+    except Exception as e:
+        logger.error(f"DnaService initialization failed (DNA endpoints will be unavailable): {e}")
+    yield
+
+
 app = FastAPI(
     title="Type Beat Analyzer API",
     description="Shazam for type beats - analyze your beat and see trending artists",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan,
 )
 
 # CORS middleware - allow local + remote access
@@ -912,63 +926,69 @@ async def get_training_status():
         )
 
 
-# ─── DNA Proxy Routes ───────────────────────────────────────────────────────
-# Forward /api/dna/* to Shadow PC's /dna/* endpoints so the frontend only
-# needs to know the Cloud Run URL (no direct Shadow PC access required).
+# ─── Native DNA Routes ──────────────────────────────────────────────────────
+# These run inference locally on Cloud Run using artist profiles from GCS.
+# Shadow PC is no longer needed for inference — only for training.
 
 @app.get("/api/dna/artists")
-async def proxy_dna_artists():
-    """Proxy to Shadow PC /dna/artists — list all artist DNA profiles"""
-    if not SHADOW_PC_WEBHOOK_URL:
-        raise HTTPException(status_code=503, detail="Shadow PC not configured")
+async def dna_artists():
+    """List all artist DNA profiles (loaded from GCS on startup)."""
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.get(f"{SHADOW_PC_WEBHOOK_URL}/dna/artists")
-            resp.raise_for_status()
-            return resp.json()
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+        dna_service = DnaService.get_instance()
+        return dna_service.get_artists()
     except Exception as e:
-        logger.error(f"DNA artists proxy error: {e}")
-        raise HTTPException(status_code=502, detail=f"Shadow PC unreachable: {e}")
+        logger.error(f"DNA artists error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error listing artists: {e}")
 
 
 @app.get("/api/dna/similarity-matrix")
-async def proxy_dna_similarity_matrix():
-    """Proxy to Shadow PC /dna/similarity-matrix — artist-to-artist similarity"""
-    if not SHADOW_PC_WEBHOOK_URL:
-        raise HTTPException(status_code=503, detail="Shadow PC not configured")
+async def dna_similarity_matrix():
+    """Compute artist-to-artist similarity matrix from cached profiles."""
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.get(f"{SHADOW_PC_WEBHOOK_URL}/dna/similarity-matrix")
-            resp.raise_for_status()
-            return resp.json()
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+        dna_service = DnaService.get_instance()
+        return dna_service.get_similarity_matrix()
     except Exception as e:
-        logger.error(f"DNA similarity-matrix proxy error: {e}")
-        raise HTTPException(status_code=502, detail=f"Shadow PC unreachable: {e}")
+        logger.error(f"DNA similarity-matrix error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error computing similarity matrix: {e}")
 
 
 @app.post("/api/dna/blend-upload")
-async def proxy_dna_blend_upload(file: UploadFile = File(...)):
-    """Proxy to Shadow PC /dna/blend-upload — analyze uploaded beat's DNA blend"""
-    if not SHADOW_PC_WEBHOOK_URL:
-        raise HTTPException(status_code=503, detail="Shadow PC not configured")
+async def dna_blend_upload(file: UploadFile = File(...)):
+    """Analyze uploaded beat's DNA blend against artist profiles (native inference)."""
+    import uuid
+    import tempfile
+
+    temp_path = None
     try:
+        # Save uploaded file to temp location
+        file_ext = os.path.splitext(file.filename or "audio")[1] or ".wav"
+        temp_path = os.path.join(tempfile.gettempdir(), f"dna_blend_{uuid.uuid4().hex}{file_ext}")
+
         content = await file.read()
-        async with httpx.AsyncClient(timeout=120) as client:
-            resp = await client.post(
-                f"{SHADOW_PC_WEBHOOK_URL}/dna/blend-upload",
-                files={"file": (file.filename, content, file.content_type or "audio/mpeg")},
-            )
-            resp.raise_for_status()
-            return resp.json()
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+        if not content:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+        with open(temp_path, "wb") as f:
+            f.write(content)
+
+        dna_service = DnaService.get_instance()
+        result = dna_service.blend_audio(temp_path)
+
+        return {"success": True, **result}
+
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"DNA blend-upload proxy error: {e}")
-        raise HTTPException(status_code=502, detail=f"Shadow PC unreachable: {e}")
+        logger.error(f"DNA blend-upload error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error analyzing blend: {e}")
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
