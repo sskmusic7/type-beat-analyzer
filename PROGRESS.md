@@ -122,10 +122,10 @@
 - [x] **Add DNA comparison to beat analysis page** — upload beat → parallel fingerprint + DNA blend → artist similarity bars, BPM/Key/Vibe cards (commit `11524d2`)
 - [x] **Deploy to Cloud Run** — rev `00047-hld`, DNA proxy routes live (commit `11524d2`)
 
-### HIGH PRIORITY
-1. [ ] **Restart webhook server** — pick up latest code changes (stem endpoint, CORS, etc.)
-2. [ ] **Verify all 95 DNA profiles are in GCS** — some late additions (tay_keith, wheezy) may not have uploaded
-3. [ ] **End-to-end test** — upload a beat on live Cloud Run URL, verify DNA blend results appear
+### DONE (Apr 1)
+- [x] **Restart webhook server** — restarted, healthy
+- [x] **Verify all 95 DNA profiles in GCS** — 94 found, uploaded missing `ssk.json`, now 95/95
+- [x] **End-to-end test** — uploaded mp3 → Cloud Run → Shadow PC → got 5 artist matches (Fuerza Regida 77%, Eslabon Armado 73%, etc.) + BPM/key/tags
 
 ### MEDIUM PRIORITY
 4. [ ] **Train more artists with stems** — expand beyond the 5 producers
