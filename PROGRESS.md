@@ -117,22 +117,26 @@
 
 ## TODO — Next Steps (Priority Order)
 
+### DONE
+- [x] **Connect admin panel to DNA endpoints** — ArtistDNAPanel shows 95 profiles, similarity pairs, search (commit `d21673f`)
+- [x] **Add DNA comparison to beat analysis page** — upload beat → parallel fingerprint + DNA blend → artist similarity bars, BPM/Key/Vibe cards (commit `11524d2`)
+- [x] **Deploy to Cloud Run** — rev `00047-hld`, DNA proxy routes live (commit `11524d2`)
+
 ### HIGH PRIORITY
 1. [ ] **Restart webhook server** — pick up latest code changes (stem endpoint, CORS, etc.)
 2. [ ] **Verify all 95 DNA profiles are in GCS** — some late additions (tay_keith, wheezy) may not have uploaded
+3. [ ] **End-to-end test** — upload a beat on live Cloud Run URL, verify DNA blend results appear
 
 ### MEDIUM PRIORITY
-5. [ ] **Train select artists with stems** — `batch_train_dna.py --artists "Metro Boomin,Southside" --stems --max-tracks 10`
-6. [ ] **Connect admin panel to DNA endpoints** — training dashboard should show DNA profiles
-7. [ ] **Add DNA comparison to beat analysis page** — upload beat → show top artist matches
-8. [ ] **Update Cloud Run env vars** if webhook URL changed
+4. [ ] **Train more artists with stems** — expand beyond the 5 producers
+5. [ ] **Update Cloud Run env vars** if webhook URL changed
 
 ### LOW PRIORITY / FUTURE
-9. [ ] **Build recommendation engine** — "beats like X artist" using DNA similarity
-10. [ ] **Add producer DNA profiles** — separate from artist profiles (Metro Boomin as producer vs artist)
-11. [ ] **Real-time beat analysis** — WebSocket for live audio input
-12. [ ] **Mobile-friendly UI** for blend/similarity pages
-13. [ ] **API rate limiting** on DNA endpoints
+6. [ ] **Build recommendation engine** — "beats like X artist" using DNA similarity
+7. [ ] **Add producer DNA profiles** — separate from artist profiles (Metro Boomin as producer vs artist)
+8. [ ] **Real-time beat analysis** — WebSocket for live audio input
+9. [ ] **Mobile-friendly UI** for blend/similarity pages
+10. [ ] **API rate limiting** on DNA endpoints
 
 ---
 
