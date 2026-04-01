@@ -21,13 +21,15 @@
 |-----------|--------|-------------|
 | Shadow PC Webhook Server | LIVE (auto-start via Task Scheduler) | Mar 25, 2026 |
 | Cloudflare Named Tunnel | LIVE (`webhook.sskmusic.com`) | Mar 15, 2026 |
-| Cloud Run Backend | STALE — needs redeploy | Mar 25, 2026 |
+| Cloud Run Backend | LIVE (rev 00047-hld) | Apr 1, 2026 |
 | Audio DNA Pipeline (7 modules) | COMPLETE | Mar 25, 2026 |
 | Batch DNA Training (75 artists) | COMPLETE (75/75) | Mar 26, 2026 |
 | Artist DNA Profiles | 95 profiles in local + GCS | Mar 26, 2026 |
 | Fingerprint DB | 517 fingerprints, 89 artists | Mar 26, 2026 |
-| Blend UI (`/blend`) | BUILT, needs Cloud Run deploy | Mar 25, 2026 |
-| Similarity Matrix (`/similarity`) | BUILT, needs Cloud Run deploy | Mar 25, 2026 |
+| Blend UI (`/blend`) | LIVE on Cloud Run | Apr 1, 2026 |
+| Similarity Matrix (`/similarity`) | LIVE on Cloud Run | Apr 1, 2026 |
+| DNA Proxy Routes | LIVE (`/api/dna/*` → Shadow PC) | Apr 1, 2026 |
+| Beat DNA Blend UI | LIVE (parallel analysis) | Apr 1, 2026 |
 | Stem-aware Matching | BUILT, endpoint ready | Mar 25, 2026 |
 | Frontend (localhost:3000) | WORKS locally | Mar 25, 2026 |
 
@@ -100,41 +102,24 @@
 
 ---
 
-## Uncommitted Changes (as of Mar 31, 2026)
+## Recently Committed
 
-### Modified (12 files):
-- `backend/app/fingerprint_service_cloud_storage.py`
-- `backend/data/models/fingerprint_index.faiss`
-- `backend/data/models/fingerprint_metadata.json`
-- `backend/main.py`
-- `backend/requirements.txt`
-- `shadow-pc-deploy/audio_dna/audio_dna.py`
-- `shadow-pc-deploy/audio_dna/blend_engine.py`
-- `shadow-pc-deploy/backend/app/fingerprint_service_cloud_storage.py`
-- `shadow-pc-deploy/batch_train_dna.py`
-- `shadow-pc-deploy/fingerprint_service_cloud_storage.py`
-- `shadow-pc-deploy/shadow_pc_webhook_server.py`
-
-### Untracked (4 items):
-- `cloudbuild.yaml`
-- `shadow-pc-deploy/.cache/`
-- `shadow-pc-deploy/backend/app/fingerprint_service.py`
-- `shadow-pc-deploy/data/` (95 artist DNA profiles + models)
+### Apr 1, 2026 — DNA Proxy + Beat Blend UI Deploy
+- [x] DNA proxy routes in Cloud Run backend (`/api/dna/artists`, `/api/dna/similarity-matrix`, `/api/dna/blend-upload`)
+- [x] AudioUploader fires fingerprint + DNA blend in parallel
+- [x] ResultsDisplay shows DnaBlendSection (BPM/Key/Vibe + artist similarity bars)
+- [x] ArtistDNAPanel updated to use proxy paths
+- [x] Cloud Build + Cloud Run deploy (rev `00047-hld`)
+- [x] Both proxy endpoints verified live
+- **Commit:** `11524d2`
 
 ---
 
 ## TODO — Next Steps (Priority Order)
 
 ### HIGH PRIORITY
-1. [ ] **Commit all uncommitted work** — 12 modified files + untracked DNA data
-2. [ ] **Deploy to Cloud Run** — current live version is stale (missing DNA endpoints, blend UI, similarity)
-   ```bash
-   cd C:\Users\Shadow\type-beat-analyzer
-   gcloud builds submit --config cloudbuild.yaml
-   gcloud run deploy type-beat-backend --image gcr.io/eminent-century-464801-b0/type-beat-backend --region us-central1
-   ```
-3. [ ] **Restart webhook server** — pick up latest code changes (stem endpoint, CORS, etc.)
-4. [ ] **Verify all 95 DNA profiles are in GCS** — some late additions (tay_keith, wheezy) may not have uploaded
+1. [ ] **Restart webhook server** — pick up latest code changes (stem endpoint, CORS, etc.)
+2. [ ] **Verify all 95 DNA profiles are in GCS** — some late additions (tay_keith, wheezy) may not have uploaded
 
 ### MEDIUM PRIORITY
 5. [ ] **Train select artists with stems** — `batch_train_dna.py --artists "Metro Boomin,Southside" --stems --max-tracks 10`
@@ -209,8 +194,9 @@ Cloud Run reads from GCS → serves to frontend
 | Mar 26, 2026 | Batch training completed (75/75 artists, 95 total profiles) | UNCOMMITTED |
 | Mar 27, 2026 | Stem training completed (5 producers), algorithm tuning started | UNCOMMITTED |
 | Mar 28, 2026 | Mean-centering redesign, feature weighting, webhook updates | UNCOMMITTED |
-| Mar 31, 2026 | Created PROGRESS.md, full audit of all work | PENDING |
+| Mar 31, 2026 | Created PROGRESS.md, full audit of all work | `2f8bb61` |
+| Apr 1, 2026 | DNA proxy routes, beat blend UI, Cloud Run deploy (rev 00047) | `11524d2` |
 
 ---
 
-*Last updated: March 31, 2026*
+*Last updated: April 1, 2026*
