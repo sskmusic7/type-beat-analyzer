@@ -16,6 +16,7 @@ export interface TrendingData {
 export interface AnalysisResult {
   matches: ArtistMatch[]
   processing_time_ms: number
+  dnaBlend?: import('./dna').BlendResult | null
 }
 
 export interface TrendingArtist {

@@ -1,7 +1,8 @@
 'use client'
 
 import { AnalysisResult } from '@/types'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { BlendResult } from '@/types/dna'
+import { TrendingUp, TrendingDown, Minus, Zap, Key, Tag } from 'lucide-react'
 
 interface ResultsDisplayProps {
   result: AnalysisResult
@@ -114,9 +115,124 @@ export default function ResultsDisplay({ result }: ResultsDisplayProps) {
         ))}
       </div>
 
+      {/* DNA Blend Section */}
+      {result.dnaBlend && <DnaBlendSection blend={result.dnaBlend} />}
+
       {result.processing_time_ms > 0 && (
         <p className="text-xs text-slate-500 mt-4 text-right">
           Processed in {result.processing_time_ms.toFixed(0)}ms
+        </p>
+      )}
+    </div>
+  )
+}
+
+function DnaBlendSection({ blend }: { blend: BlendResult }) {
+  const bp = blend.beat_profile
+  const maxSim = blend.artists.length > 0
+    ? Math.max(...blend.artists.map(a => a.similarity))
+    : 1
+
+  return (
+    <div className="mt-8 space-y-6">
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+        <span className="text-xs font-semibold text-cyan-400 tracking-widest uppercase">DNA Blend</span>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+      </div>
+
+      {/* Beat Profile */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/30">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+            <Zap className="w-3.5 h-3.5" /> BPM
+          </div>
+          <p className="text-2xl font-bold text-slate-50">
+            {bp.bpm ? Math.round(bp.bpm) : '--'}
+          </p>
+        </div>
+        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/30">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+            <Key className="w-3.5 h-3.5" /> Key
+          </div>
+          <p className="text-2xl font-bold text-slate-50">
+            {bp.key || '--'}
+          </p>
+        </div>
+        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/30">
+          <div className="flex items-center gap-1.5 text-slate-400 text-xs mb-1">
+            <Tag className="w-3.5 h-3.5" /> Vibe
+          </div>
+          <p className="text-sm font-medium text-slate-50 leading-tight">
+            {bp.top_tags.length > 0 ? bp.top_tags.slice(0, 3).join(', ') : '--'}
+          </p>
+        </div>
+      </div>
+
+      {/* CLAP Tags */}
+      {bp.top_tags.length > 3 && (
+        <div className="flex flex-wrap gap-2">
+          {bp.top_tags.slice(3).map(tag => (
+            <span
+              key={tag}
+              className="px-2.5 py-1 text-xs rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/25"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Artist DNA Blend Bars */}
+      {blend.artists.length > 0 ? (
+        <div className="space-y-3">
+          {blend.artists.map((artist, i) => {
+            const pct = Math.round(artist.similarity * 100)
+            const barWidth = (artist.similarity / maxSim) * 100
+            return (
+              <div key={artist.artist}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500 w-5">#{i + 1}</span>
+                    <span className="text-slate-50 font-medium text-sm">{artist.artist}</span>
+                    {artist.key_match && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                        Key Match
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    {artist.bpm_diff !== undefined && (
+                      <span className="text-slate-400 text-xs">
+                        {artist.bpm_diff > 0 ? '+' : ''}{Math.round(artist.bpm_diff)} BPM
+                      </span>
+                    )}
+                    <span className="text-slate-50 font-semibold tabular-nums w-12 text-right">
+                      {pct}%
+                    </span>
+                  </div>
+                </div>
+                <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{
+                      width: `${barWidth}%`,
+                      background: i === 0
+                        ? 'linear-gradient(to right, #06b6d4, #a855f7)'
+                        : i === 1
+                        ? 'linear-gradient(to right, #6366f1, #8b5cf6)'
+                        : 'linear-gradient(to right, #475569, #64748b)',
+                    }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="text-slate-400 text-sm text-center py-4">
+          No artist DNA profiles available for comparison yet.
         </p>
       )}
     </div>

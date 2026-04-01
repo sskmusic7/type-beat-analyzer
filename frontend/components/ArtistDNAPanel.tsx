@@ -29,8 +29,8 @@ export default function ArtistDNAPanel() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${getApiBaseUrl()}/dna/artists`).then(r => r.json()),
-      fetch(`${getApiBaseUrl()}/dna/similarity-matrix`).then(r => r.json()),
+      fetch(`${getApiBaseUrl()}/api/dna/artists`).then(r => r.json()),
+      fetch(`${getApiBaseUrl()}/api/dna/similarity-matrix`).then(r => r.json()),
     ])
       .then(([artistData, simData]) => {
         setArtists(artistData.artists || [])

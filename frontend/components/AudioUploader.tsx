@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone'
 import { Upload, Loader2 } from 'lucide-react'
 import axios from 'axios'
 import { AnalysisResult } from '@/types'
+import { BlendResult } from '@/types/dna'
 import { getApiBaseUrl } from '@/lib/api'
 
 interface AudioUploaderProps {
@@ -32,17 +33,36 @@ export default function AudioUploader({
         const formData = new FormData()
         formData.append('file', file)
 
-        const response = await axios.post<AnalysisResult>(
-          `${getApiBaseUrl()}/api/analyze`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          }
-        )
+        // Fire fingerprint analysis + DNA blend in parallel
+        const dnaFormData = new FormData()
+        dnaFormData.append('file', file)
 
-        onAnalysisComplete(response.data)
+        const [fingerprintRes, dnaRes] = await Promise.allSettled([
+          axios.post<AnalysisResult>(
+            `${getApiBaseUrl()}/api/analyze`,
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          ),
+          axios.post<BlendResult>(
+            `${getApiBaseUrl()}/api/dna/blend-upload`,
+            dnaFormData,
+            { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 }
+          ),
+        ])
+
+        // Fingerprint result is required
+        if (fingerprintRes.status === 'rejected') {
+          throw fingerprintRes.reason
+        }
+
+        const result: AnalysisResult = { ...fingerprintRes.value.data }
+
+        // DNA blend is optional — attach if available
+        if (dnaRes.status === 'fulfilled' && dnaRes.value.data?.success) {
+          result.dnaBlend = dnaRes.value.data
+        }
+
+        onAnalysisComplete(result)
       } catch (err: any) {
         setError(
           err.response?.data?.detail || 'Failed to analyze audio. Please try again.'

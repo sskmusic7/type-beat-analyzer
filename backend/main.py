@@ -12,6 +12,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
+import httpx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -909,6 +910,65 @@ async def get_training_status():
             status_code=500,
             detail=f"Error getting training status: {str(e)}"
         )
+
+
+# ─── DNA Proxy Routes ───────────────────────────────────────────────────────
+# Forward /api/dna/* to Shadow PC's /dna/* endpoints so the frontend only
+# needs to know the Cloud Run URL (no direct Shadow PC access required).
+
+@app.get("/api/dna/artists")
+async def proxy_dna_artists():
+    """Proxy to Shadow PC /dna/artists — list all artist DNA profiles"""
+    if not SHADOW_PC_WEBHOOK_URL:
+        raise HTTPException(status_code=503, detail="Shadow PC not configured")
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(f"{SHADOW_PC_WEBHOOK_URL}/dna/artists")
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except Exception as e:
+        logger.error(f"DNA artists proxy error: {e}")
+        raise HTTPException(status_code=502, detail=f"Shadow PC unreachable: {e}")
+
+
+@app.get("/api/dna/similarity-matrix")
+async def proxy_dna_similarity_matrix():
+    """Proxy to Shadow PC /dna/similarity-matrix — artist-to-artist similarity"""
+    if not SHADOW_PC_WEBHOOK_URL:
+        raise HTTPException(status_code=503, detail="Shadow PC not configured")
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(f"{SHADOW_PC_WEBHOOK_URL}/dna/similarity-matrix")
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except Exception as e:
+        logger.error(f"DNA similarity-matrix proxy error: {e}")
+        raise HTTPException(status_code=502, detail=f"Shadow PC unreachable: {e}")
+
+
+@app.post("/api/dna/blend-upload")
+async def proxy_dna_blend_upload(file: UploadFile = File(...)):
+    """Proxy to Shadow PC /dna/blend-upload — analyze uploaded beat's DNA blend"""
+    if not SHADOW_PC_WEBHOOK_URL:
+        raise HTTPException(status_code=503, detail="Shadow PC not configured")
+    try:
+        content = await file.read()
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(
+                f"{SHADOW_PC_WEBHOOK_URL}/dna/blend-upload",
+                files={"file": (file.filename, content, file.content_type or "audio/mpeg")},
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except Exception as e:
+        logger.error(f"DNA blend-upload proxy error: {e}")
+        raise HTTPException(status_code=502, detail=f"Shadow PC unreachable: {e}")
 
 
 if __name__ == "__main__":
