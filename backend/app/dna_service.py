@@ -178,8 +178,11 @@ class DnaService:
 
         from audio_dna import AudioDNA
 
-        dna = AudioDNA(enable_stems=False)
-        profile = dna.profile_fast(file_path)
+        # Disable CLAP on Cloud Run — torch 2.1.0 + msclap has pytree conflict.
+        # CLAP weight is only 0.1 in the DNA vector anyway (low discrimination).
+        # Features-only still gives accurate artist matching via MFCC/BPM/rhythm.
+        dna = AudioDNA(enable_clap=False, enable_stems=False)
+        profile = dna.profile(file_path)
         vector = dna.to_vector(profile)
         result = self._engine.blend(vector, top_k=5)
 
