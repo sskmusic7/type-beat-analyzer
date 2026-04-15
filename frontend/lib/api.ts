@@ -10,7 +10,7 @@ export function getApiBaseUrl(): string {
   
   // Production fallback
   if (process.env.NODE_ENV === 'production') {
-    return 'https://type-beat-backend-x2x4tp5wra-uc.a.run.app'
+    return 'https://type-beat-backend-287783957820.us-central1.run.app'
   }
   
   if (typeof window !== 'undefined') {
